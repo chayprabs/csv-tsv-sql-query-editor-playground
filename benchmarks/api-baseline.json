@@ -1,0 +1,34 @@
+{
+  "scenarios": [
+    {
+      "connections": 1,
+      "latency": {
+        "p50Ms": 25,
+        "p95Ms": 2860.67,
+        "p99Ms": 4277
+      },
+      "requestsCompleted": 25,
+      "scenario": "small_file_simple_query"
+    },
+    {
+      "connections": 1,
+      "latency": {
+        "p50Ms": 141,
+        "p95Ms": 168,
+        "p99Ms": 175
+      },
+      "requestsCompleted": 15,
+      "scenario": "medium_file_group_by"
+    },
+    {
+      "connections": 10,
+      "latency": {
+        "p50Ms": 350,
+        "p95Ms": 708.33,
+        "p99Ms": 755
+      },
+      "requestsCompleted": 40,
+      "scenario": "medium_file_group_by_concurrent_10"
+    }
+  ]
+}

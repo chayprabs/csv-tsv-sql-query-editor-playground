@@ -1,0 +1,280 @@
+
+> flatfile-sql-studio@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.2 C:/Users/chait/authos/t3/q-web
+
+ ❯ tests/api/query-endpoint.test.ts (12 tests | 6 failed) 14925ms
+     × rejects requests with no Content-Type header 58ms
+     × rejects requests with the wrong Content-Type header 40ms
+     × rejects corrupted multipart boundaries cleanly 104ms
+     × rejects truncated multipart bodies cleanly 529ms
+     × returns clear validation errors for missing query or files 70ms
+     × enforces the per-file size limit at, below, and above the configured boundary 41ms
+[2026-04-06T17:04:16.612Z] Query timeout after 50ms: WITH RECURSIVE t(x) AS (VALUES(1) UNION ALL SELECT x + 1 FROM t) SELECT * FROM t
+ ❯ tests/abuse-prevention.test.ts (29 tests | 3 failed) 7533ms
+     × rejects a request one byte over the configured size limit 586ms
+     × allows exactly 20 files and rejects 21 817ms
+     × rejects empty, whitespace-only, and missing multipart content types 9ms
+ ❯ app/api/query/__tests__/route.test.ts (11 tests | 3 failed) 1108ms
+     × returns 400 when no files are provided 61ms
+     × returns 400 when files are uploaded without a query 6ms
+     × returns 413 with "File too large" for uploads larger than 50MB 272ms
+ ❯ tests/edge-cases/uploads-and-runtime.test.ts (5 tests | 2 failed) 743ms
+     × UP-05 rejects a binary payload that is disguised as a CSV 28ms
+     × UP-12 rejects requests that exceed the file-count limit 19ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/abuse-prevention.test.ts > Layer 1 - Request size hard limit > rejects a request one byte over the configured size limit
+AssertionError: expected 200 to be 413 // Object.is equality
+
+- Expected
++ Received
+
+- 413
++ 200
+
+ ❯ tests/abuse-prevention.test.ts:220:33
+    218|         const payload = await readJson<{ error: string }>(response);
+    219|
+    220|         expect(response.status).toBe(413);
+       |                                 ^
+    221|         expect(payload.error).toContain(
+    222|           "Upload too large. Maximum total upload size is",
+ ❯ withEnv tests/abuse-prevention.test.ts:134:5
+ ❯ tests/abuse-prevention.test.ts:202:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  tests/abuse-prevention.test.ts > Layer 3 - Validation > allows exactly 20 files and rejects 21
+AssertionError: expected 400 to be 413 // Object.is equality
+
+- Expected
++ Received
+
+- 413
++ 400
+
+ ❯ tests/abuse-prevention.test.ts:359:36
+    357|     const payload = await readJson<{ error: string }>(blockedResponse);
+    358|
+    359|     expect(blockedResponse.status).toBe(413);
+       |                                    ^
+    360|     expect(payload.error).toBe("Too many files uploaded. Maximum is 20…
+    361|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  tests/abuse-prevention.test.ts > Layer 3 - Validation > rejects empty, whitespace-only, and missing multipart content types
+AssertionError: expected 'Query is required.' to be 'Query is required' // Object.is equality
+
+Expected: "Query is required"
+Received: "Query is required."
+
+ ❯ tests/abuse-prevention.test.ts:430:37
+    428|     const emptyQueryPayload = await readJson<{ error: string }>(emptyQ…
+    429|     expect(emptyQueryResponse.status).toBe(400);
+    430|     expect(emptyQueryPayload.error).toBe("Query is required");
+       |                                     ^
+    431|
+    432|     const whitespaceQueryResponse = await postMultipart({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  tests/api/query-endpoint.test.ts > POST /api/query (live dev server) > rejects requests with no Content-Type header
+AssertionError: expected 400 to be 415 // Object.is equality
+
+- Expected
++ Received
+
+- 415
++ 400
+
+ ❯ tests/api/query-endpoint.test.ts:154:29
+    152|     const payload = await readJson(response);
+    153|
+    154|     expect(response.status).toBe(415);
+       |                             ^
+    155|     expect(payload.error).toBe("Content-Type must be multipart/form-da…
+    156|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  tests/api/query-endpoint.test.ts > POST /api/query (live dev server) > rejects requests with the wrong Content-Type header
+AssertionError: expected 400 to be 415 // Object.is equality
+
+- Expected
++ Received
+
+- 415
++ 400
+
+ ❯ tests/api/query-endpoint.test.ts:168:29
+    166|     const payload = await readJson(response);
+    167|
+    168|     expect(response.status).toBe(415);
+       |                             ^
+    169|     expect(payload.error).toBe("Content-Type must be multipart/form-da…
+    170|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  tests/api/query-endpoint.test.ts > POST /api/query (live dev server) > rejects corrupted multipart boundaries cleanly
+AssertionError: expected 'Invalid multipart form data.' to be 'Invalid multipart form data' // Object.is equality
+
+Expected: "Invalid multipart form data"
+Received: "Invalid multipart form data."
+
+ ❯ tests/api/query-endpoint.test.ts:197:27
+    195|
+    196|     expect(response.status).toBe(400);
+    197|     expect(payload.error).toBe("Invalid multipart form data");
+       |                           ^
+    198|   });
+    199|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+ FAIL  tests/api/query-endpoint.test.ts > POST /api/query (live dev server) > rejects truncated multipart bodies cleanly
+AssertionError: expected 'Invalid multipart form data.' to be 'Invalid multipart form data' // Object.is equality
+
+Expected: "Invalid multipart form data"
+Received: "Invalid multipart form data."
+
+ ❯ tests/api/query-endpoint.test.ts:225:27
+    223|
+    224|     expect(response.status).toBe(400);
+    225|     expect(payload.error).toBe("Invalid multipart form data");
+       |                           ^
+    226|   });
+    227|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯
+
+ FAIL  tests/api/query-endpoint.test.ts > POST /api/query (live dev server) > returns clear validation errors for missing query or files
+AssertionError: expected 'Query is required.' to be 'Query is required' // Object.is equality
+
+Expected: "Query is required"
+Received: "Query is required."
+
+ ❯ tests/api/query-endpoint.test.ts:238:39
+    236|
+    237|     expect(missingQueryResponse.status).toBe(400);
+    238|     expect(missingQueryPayload.error).toBe("Query is required");
+       |                                       ^
+    239|
+    240|     const missingFileResponse = await postFormData(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯
+
+ FAIL  tests/api/query-endpoint.test.ts > POST /api/query (live dev server) > enforces the per-file size limit at, below, and above the configured boundary
+AssertionError: expected 413 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 413
+
+ ❯ tests/api/query-endpoint.test.ts:330:34
+    328|       }),
+    329|     );
+    330|     expect(belowResponse.status).toBe(200);
+       |                                  ^
+    331|
+    332|     const atResponse = await postFormData(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯
+
+ FAIL  tests/edge-cases/uploads-and-runtime.test.ts > EDGE_CASES uploads and runtime > UP-05 rejects a binary payload that is disguised as a CSV
+AssertionError: expected 'Could not parse the uploaded file.' to contain 'text-based'
+
+Expected: "text-based"
+Received: "Could not parse the uploaded file."
+
+ ❯ tests/edge-cases/uploads-and-runtime.test.ts:84:27
+     82|
+     83|     expect(response.status).toBe(400);
+     84|     expect(payload.error).toContain("text-based");
+       |                           ^
+     85|   });
+     86|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/14]⎯
+
+ FAIL  tests/edge-cases/uploads-and-runtime.test.ts > EDGE_CASES uploads and runtime > UP-12 rejects requests that exceed the file-count limit
+AssertionError: expected 400 to be 413 // Object.is equality
+
+- Expected
++ Received
+
+- 413
++ 400
+
+ ❯ tests/edge-cases/uploads-and-runtime.test.ts:97:31
+     95|       const payload = (await response.json()) as { error?: string };
+     96|
+     97|       expect(response.status).toBe(413);
+       |                               ^
+     98|       expect(payload.error).toContain("Maximum is 1");
+     99|     });
+ ❯ tests/edge-cases/uploads-and-runtime.test.ts:88:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/14]⎯
+
+ FAIL  app/api/query/__tests__/route.test.ts > POST /api/query > returns 400 when no files are provided
+AssertionError: expected 'At least one CSV or TSV file is requi…' to be 'No files uploaded' // Object.is equality
+
+Expected: "No files uploaded"
+Received: "At least one CSV or TSV file is required."
+
+ ❯ app/api/query/__tests__/route.test.ts:96:27
+     94|
+     95|     expect(response.status).toBe(400);
+     96|     expect(payload.error).toBe("No files uploaded");
+       |                           ^
+     97|   });
+     98|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/14]⎯
+
+ FAIL  app/api/query/__tests__/route.test.ts > POST /api/query > returns 400 when files are uploaded without a query
+AssertionError: expected 'Query is required.' to be 'Query is required' // Object.is equality
+
+Expected: "Query is required"
+Received: "Query is required."
+
+ ❯ app/api/query/__tests__/route.test.ts:109:27
+    107|
+    108|     expect(response.status).toBe(400);
+    109|     expect(payload.error).toBe("Query is required");
+       |                           ^
+    110|   });
+    111|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/14]⎯
+
+ FAIL  app/api/query/__tests__/route.test.ts > POST /api/query > returns 413 with "File too large" for uploads larger than 50MB
+AssertionError: expected 'Upload too large. Maximum total uploa…' to contain 'File too large.'
+
+Expected: "File too large."
+Received: "Upload too large. Maximum total upload size is 50MB."
+
+ ❯ app/api/query/__tests__/route.test.ts:128:27
+    126|
+    127|     expect(response.status).toBe(413);
+    128|     expect(payload.error).toContain("File too large.");
+       |                           ^
+    129|   });
+    130|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/14]⎯
+
+
+ Test Files  4 failed | 37 passed (41)
+      Tests  14 failed | 215 passed (229)
+   Start at  22:33:54
+   Duration  99.66s (transform 1.18s, setup 33.71s, import 3.91s, tests 33.94s, environment 8.23s)
+

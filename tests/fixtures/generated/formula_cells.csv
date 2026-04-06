@@ -1,0 +1,5 @@
+id,formula_like_value,notes
+1,=SUM(A1:A2),starts with equals
+2,+1+2,starts with plus
+3,-10+5,starts with minus
+4,@cmd,starts with at-sign

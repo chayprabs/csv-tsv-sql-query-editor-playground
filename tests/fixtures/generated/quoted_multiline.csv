@@ -1,0 +1,5 @@
+ticket_id,summary,comment
+1,Escalation,"first line
+second line"
+2,Reminder,"contains,comma"
+3,Quote,"contains ""quotes"""

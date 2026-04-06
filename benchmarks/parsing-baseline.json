@@ -1,0 +1,41 @@
+{
+  "scenarios": [
+    {
+      "columnCount": 8,
+      "medianMs": 2.99,
+      "rows": 1000,
+      "runsMs": [
+        4.28,
+        2.99,
+        2.13
+      ]
+    },
+    {
+      "columnCount": 8,
+      "medianMs": 21.43,
+      "rows": 10000,
+      "runsMs": [
+        26.3,
+        21.43,
+        19.83
+      ]
+    },
+    {
+      "columnCount": 8,
+      "medianMs": 228.91,
+      "rows": 100000,
+      "runsMs": [
+        228.91,
+        241.65,
+        206.58
+      ]
+    },
+    {
+      "columnCount": 0,
+      "error": "Maximum call stack size exceeded",
+      "medianMs": 0,
+      "rows": 500000,
+      "runsMs": []
+    }
+  ]
+}

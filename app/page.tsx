@@ -1,65 +1,635 @@
-import Image from "next/image";
+"use client";
+
+import type { FormEvent } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
+
+import { ErrorDisplay } from "@/components/ErrorDisplay";
+import { FileUploader, type FilePreview } from "@/components/FileUploader";
+import { QueryEditor } from "@/components/QueryEditor";
+import { ResultsTable } from "@/components/ResultsTable";
+import { rowsToDelimitedText } from "@/lib/csvExport";
+import { parseDelimitedText } from "@/lib/delimitedData";
+import {
+  resolveDelimiter,
+  type SupportedDelimiter,
+} from "@/lib/delimiterDetection";
+import type { QueryResponse as ServerQueryResponse } from "@/lib/csvToSqlite";
+import {
+  DEFAULT_FILE_PARSE_OPTIONS,
+  type FileParseOptions,
+} from "@/lib/fileParsing";
+import { resolveHasHeaders } from "@/lib/headerMode";
+import {
+  mergeQueryHistory,
+  parseStoredQueryHistory,
+  serializeQueryHistory,
+} from "@/lib/queryHistory";
+import { parseShareState, serializeShareState } from "@/lib/shareState";
+import { deriveTableName } from "@/lib/tableNaming";
+import {
+  decodeTextBytes,
+  type InputEncoding,
+} from "@/lib/textEncoding";
+
+const DEFAULT_INPUT_ENCODING: InputEncoding = "utf-8";
+const DEFAULT_OUTPUT_DELIMITER: SupportedDelimiter = ",";
+const QUERY_HISTORY_STORAGE_KEY = "flatfile-sql-studio.query-history";
+
+type QueryResponse = ServerQueryResponse;
+
+interface UploadedFileState extends FileParseOptions {
+  file: File;
+  tableName: string;
+}
+
+function buildStarterQuery(files: FilePreview[]): string {
+  if (files.length === 0) {
+    return "";
+  }
+
+  if (files.length === 1) {
+    return `SELECT * FROM ${files[0].tableName} LIMIT 10`;
+  }
+
+  return [
+    `SELECT * FROM ${files[0].tableName} LIMIT 10;`,
+    "",
+    "SELECT a.*, b.*",
+    `FROM ${files[0].tableName} a`,
+    `JOIN ${files[1].tableName} b ON a.id = b.id`,
+    "LIMIT 10",
+  ].join("\n");
+}
+
+function formatServerError(payload: Pick<QueryResponse, "error" | "requestId">): string {
+  if (!payload.error) {
+    return "Unexpected query error.";
+  }
+
+  return payload.requestId
+    ? `${payload.error} Request ID: ${payload.requestId}`
+    : payload.error;
+}
+
+function formatHeaderNotice(files: FilePreview[]): string | null {
+  const autoFiles = files.filter((file) => file.headerMode === "auto");
+
+  if (autoFiles.length < 2) {
+    return null;
+  }
+
+  const everyFileHasHeaders = autoFiles.every((file) => file.suggestedHasHeaders);
+  const everyFileHasNoHeaders = autoFiles.every(
+    (file) => !file.suggestedHasHeaders,
+  );
+
+  if (everyFileHasHeaders || everyFileHasNoHeaders) {
+    return null;
+  }
+
+  return "Header auto-detection disagreed across the uploaded files still using Auto. Review each file card before running the query.";
+}
+
+function downloadFilename(delimiter: SupportedDelimiter): string {
+  if (delimiter === "\t") {
+    return "query-results.tsv";
+  }
+
+  if (delimiter === ";") {
+    return "query-results-semicolon.csv";
+  }
+
+  return "query-results.csv";
+}
+
+function downloadMimeType(delimiter: SupportedDelimiter): string {
+  if (delimiter === "\t") {
+    return "text/tab-separated-values;charset=utf-8";
+  }
+
+  return "text/csv;charset=utf-8";
+}
+
+function stringifyClipboardUrl(): string {
+  return window.location.href;
+}
+
+async function readDecodedFile(
+  file: File,
+  inputEncoding: InputEncoding,
+  cache: Map<string, string>,
+): Promise<{
+  file: File;
+  text: string;
+}> {
+  const cacheKey = `${file.name}:${file.size}:${file.lastModified}:${inputEncoding}`;
+  const cachedText = cache.get(cacheKey);
+
+  if (cachedText !== undefined) {
+    return {
+      file,
+      text: cachedText,
+    };
+  }
+
+  const text = decodeTextBytes(await file.arrayBuffer(), inputEncoding);
+  cache.set(cacheKey, text);
+
+  return {
+    file,
+    text,
+  };
+}
+
+function buildUploadedFiles(fileList: FileList | null): UploadedFileState[] {
+  const takenTableNames = new Set<string>();
+
+  return Array.from(fileList ?? []).map((file) => ({
+    ...DEFAULT_FILE_PARSE_OPTIONS,
+    file,
+    tableName: deriveTableName(file.name, takenTableNames),
+  }));
+}
+
+function buildFilePreview(
+  decodedFile: {
+    file: File;
+    text: string;
+  },
+  uploadedFile: UploadedFileState,
+): FilePreview {
+  const suggestedDelimiter = resolveDelimiter(decodedFile.text, "auto");
+  const suggestedHasHeaders = resolveHasHeaders(
+    decodedFile.text,
+    suggestedDelimiter,
+    "auto",
+  );
+
+  try {
+    const parsed = parseDelimitedText(decodedFile.text, {
+      delimiter: uploadedFile.delimiter,
+      headerMode: uploadedFile.headerMode,
+      sourceName: uploadedFile.file.name,
+    });
+
+    return {
+      delimiter: uploadedFile.delimiter,
+      effectiveDelimiter: parsed.delimiter,
+      effectiveHasHeaders: parsed.hasHeaders,
+      headerMode: uploadedFile.headerMode,
+      name: uploadedFile.file.name,
+      schema: parsed.columnNames.map((name, index) => ({
+        name,
+        type: parsed.sqliteTypes[index],
+      })),
+      size: uploadedFile.file.size,
+      suggestedDelimiter,
+      suggestedHasHeaders,
+      tableName: uploadedFile.tableName,
+    };
+  } catch (error) {
+    return {
+      delimiter: uploadedFile.delimiter,
+      effectiveDelimiter:
+        uploadedFile.delimiter === "auto"
+          ? suggestedDelimiter
+          : uploadedFile.delimiter,
+      effectiveHasHeaders:
+        uploadedFile.headerMode === "auto"
+          ? suggestedHasHeaders
+          : uploadedFile.headerMode === "present",
+      headerMode: uploadedFile.headerMode,
+      name: uploadedFile.file.name,
+      parseError:
+        error instanceof Error
+          ? error.message
+          : `Unable to preview "${uploadedFile.file.name}".`,
+      size: uploadedFile.file.size,
+      suggestedDelimiter,
+      suggestedHasHeaders,
+      tableName: uploadedFile.tableName,
+    };
+  }
+}
 
 export default function Home() {
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFileState[]>([]);
+  const [filePreviews, setFilePreviews] = useState<FilePreview[]>([]);
+  const [query, setQuery] = useState("");
+  const [inputEncoding, setInputEncoding] = useState<InputEncoding>(
+    DEFAULT_INPUT_ENCODING,
+  );
+  const [outputDelimiter, setOutputDelimiter] = useState<SupportedDelimiter>(
+    DEFAULT_OUTPUT_DELIMITER,
+  );
+  const [includeOutputHeader, setIncludeOutputHeader] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
+  const [result, setResult] = useState<QueryResponse | null>(null);
+  const [headerNotice, setHeaderNotice] = useState<string | null>(null);
+  const [queryHistory, setQueryHistory] = useState<string[]>([]);
+  const [inputResetKey, setInputResetKey] = useState(0);
+  const [hasLoadedShareState, setHasLoadedShareState] = useState(false);
+  const decodedFileCacheRef = useRef(new Map<string, string>());
+  const submitLockRef = useRef(false);
+
+  useEffect(() => {
+    let nextHistory: string[] = [];
+
+    try {
+      nextHistory = parseStoredQueryHistory(
+        window.localStorage.getItem(QUERY_HISTORY_STORAGE_KEY),
+      );
+    } catch {
+      nextHistory = [];
+    }
+    const sharedState = parseShareState(window.location.hash);
+
+    setQueryHistory(nextHistory);
+
+    if (sharedState.query) {
+      setQuery(sharedState.query);
+    }
+
+    if (sharedState.inputEncoding) {
+      setInputEncoding(sharedState.inputEncoding);
+    }
+
+    if (sharedState.outputDelimiter) {
+      setOutputDelimiter(sharedState.outputDelimiter);
+    }
+
+    if (sharedState.includeHeader !== undefined) {
+      setIncludeOutputHeader(sharedState.includeHeader);
+    }
+
+    setHasLoadedShareState(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedShareState) {
+      return;
+    }
+
+    const nextHash = serializeShareState({
+      includeHeader: includeOutputHeader,
+      inputEncoding,
+      outputDelimiter,
+      query,
+    });
+
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${window.location.search}${nextHash ? `#${nextHash}` : ""}`,
+    );
+  }, [
+    hasLoadedShareState,
+    includeOutputHeader,
+    inputEncoding,
+    outputDelimiter,
+    query,
+  ]);
+
+  useEffect(() => {
+    let didCancel = false;
+
+    async function preparePreviews() {
+      if (uploadedFiles.length === 0) {
+        startTransition(() => {
+          setFilePreviews([]);
+          setHeaderNotice(null);
+        });
+        return;
+      }
+
+      try {
+        const decodedFiles = await Promise.all(
+          uploadedFiles.map((uploadedFile) =>
+            readDecodedFile(
+              uploadedFile.file,
+              inputEncoding,
+              decodedFileCacheRef.current,
+            ),
+          ),
+        );
+        const nextPreviews = decodedFiles.map((decodedFile, index) =>
+          buildFilePreview(decodedFile, uploadedFiles[index]),
+        );
+
+        if (didCancel) {
+          return;
+        }
+
+        startTransition(() => {
+          setFilePreviews(nextPreviews);
+          setHeaderNotice(formatHeaderNotice(nextPreviews));
+        });
+
+        setQuery((currentQuery) =>
+          currentQuery.trim() ? currentQuery : buildStarterQuery(nextPreviews),
+        );
+      } catch (error) {
+        if (didCancel) {
+          return;
+        }
+
+        setFilePreviews([]);
+        setHeaderNotice(null);
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Unexpected client error while reading the selected files.",
+        );
+      }
+    }
+
+    preparePreviews();
+
+    return () => {
+      didCancel = true;
+    };
+  }, [inputEncoding, uploadedFiles]);
+
+  function persistQueryHistory(nextQuery: string) {
+    setQueryHistory((currentHistory) => {
+      const nextHistory = mergeQueryHistory(currentHistory, nextQuery);
+
+      try {
+        window.localStorage.setItem(
+          QUERY_HISTORY_STORAGE_KEY,
+          serializeQueryHistory(nextHistory),
+        );
+      } catch {
+        // Ignore storage failures and keep the in-memory history.
+      }
+
+      return nextHistory;
+    });
+  }
+
+  function resetDerivedResults() {
+    setResult(null);
+    setNoticeMessage(null);
+    setErrorMessage(null);
+  }
+
+  function handleFilesSelected(fileList: FileList | null) {
+    setUploadedFiles(buildUploadedFiles(fileList));
+    resetDerivedResults();
+  }
+
+  function handleClearFiles() {
+    setUploadedFiles([]);
+    setFilePreviews([]);
+    setHeaderNotice(null);
+    setInputResetKey((currentKey) => currentKey + 1);
+    decodedFileCacheRef.current.clear();
+    resetDerivedResults();
+  }
+
+  function handleFileDelimiterChange(
+    tableName: string,
+    delimiter: UploadedFileState["delimiter"],
+  ) {
+    setUploadedFiles((currentFiles) =>
+      currentFiles.map((file) =>
+        file.tableName === tableName ? { ...file, delimiter } : file,
+      ),
+    );
+    resetDerivedResults();
+  }
+
+  function handleFileHeaderModeChange(
+    tableName: string,
+    headerMode: UploadedFileState["headerMode"],
+  ) {
+    setUploadedFiles((currentFiles) =>
+      currentFiles.map((file) =>
+        file.tableName === tableName ? { ...file, headerMode } : file,
+      ),
+    );
+    resetDerivedResults();
+  }
+
+  function handleInputEncodingChange(nextEncoding: InputEncoding) {
+    setInputEncoding(nextEncoding);
+    setResult(null);
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (submitLockRef.current) {
+      return;
+    }
+
+    if (uploadedFiles.length === 0) {
+      setErrorMessage("Upload at least one CSV or TSV file before running a query.");
+      return;
+    }
+
+    if (!query.trim()) {
+      setErrorMessage("Write a SQL query before running it.");
+      return;
+    }
+
+    submitLockRef.current = true;
+    setIsLoading(true);
+    setErrorMessage(null);
+    setNoticeMessage(null);
+
+    try {
+      const formData = new FormData();
+
+      for (const uploadedFile of uploadedFiles) {
+        formData.append("files[]", uploadedFile.file);
+      }
+
+      formData.append(
+        "fileSettings",
+        JSON.stringify(
+          uploadedFiles.map(({ delimiter, headerMode }) => ({
+            delimiter,
+            headerMode,
+          })),
+        ),
+      );
+      formData.append("query", query);
+      formData.append("encoding", inputEncoding);
+
+      const response = await fetch("/api/query", {
+        body: formData,
+        cache: "no-store",
+        method: "POST",
+      });
+
+      const payload = (await response.json()) as QueryResponse;
+
+      if (!response.ok || payload.error) {
+        setResult(null);
+        setErrorMessage(formatServerError(payload));
+        return;
+      }
+
+      setResult(payload);
+      persistQueryHistory(query);
+    } catch (error) {
+      setResult(null);
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Unexpected client error while running the query.",
+      );
+    } finally {
+      submitLockRef.current = false;
+      setIsLoading(false);
+    }
+  }
+
+  function handleDownloadResults() {
+    if (!result || result.columns.length === 0 || result.rows.length === 0) {
+      return;
+    }
+
+    const blob = new Blob(
+      [
+        rowsToDelimitedText(result.columns, result.rows, {
+          delimiter: outputDelimiter,
+          includeHeader: includeOutputHeader,
+        }),
+      ],
+      {
+        type: downloadMimeType(outputDelimiter),
+      },
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = downloadFilename(outputDelimiter);
+    link.click();
+
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleCopyResults() {
+    if (!result || result.columns.length === 0 || result.rows.length === 0) {
+      return;
+    }
+
+    const content = rowsToDelimitedText(result.columns, result.rows, {
+      delimiter: outputDelimiter,
+      includeHeader: includeOutputHeader,
+    });
+
+    try {
+      await navigator.clipboard.writeText(content);
+      setNoticeMessage("Results copied to the clipboard.");
+    } catch {
+      setErrorMessage("Unable to copy results to the clipboard.");
+    }
+  }
+
+  async function handleCopyShareLink() {
+    try {
+      await navigator.clipboard.writeText(stringifyClipboardUrl());
+      setNoticeMessage("Share link copied to the clipboard.");
+    } catch {
+      setErrorMessage("Unable to copy the share link.");
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen px-4 py-8 md:px-8 md:py-10">
+      <div className="mx-auto max-w-7xl">
+        <section className="rounded-[2.4rem] border border-line/80 bg-[#fffaf1]/80 px-6 py-8 shadow-panel md:px-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">
+            Flatfile SQL Studio
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+          <div className="mt-4 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+            <div>
+              <h1 className="max-w-3xl text-4xl font-semibold tracking-[-0.03em] text-ink md:text-6xl">
+                Query raw CSV and TSV files with SQLite, right in the browser.
+              </h1>
+            </div>
+            <p className="max-w-xl text-sm leading-7 text-muted md:text-base">
+              Upload one file or a handful, inspect the inferred schema, and run
+              familiar SQLite queries against each uploaded table. Each file
+              becomes its own table, so joins work naturally.
+            </p>
+          </div>
+        </section>
+
+        <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+          <div className="space-y-6">
+            <FileUploader
+              files={filePreviews}
+              headerNotice={headerNotice}
+              inputResetKey={inputResetKey}
+              isLoading={isLoading}
+              onClear={handleClearFiles}
+              onDelimiterChange={handleFileDelimiterChange}
+              onFilesSelected={handleFilesSelected}
+              onHeaderModeChange={handleFileHeaderModeChange}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+            <QueryEditor
+              hasFiles={uploadedFiles.length > 0}
+              inputEncoding={inputEncoding}
+              isLoading={isLoading}
+              onCopyShareLink={handleCopyShareLink}
+              onInputEncodingChange={handleInputEncodingChange}
+              onQueryChange={setQuery}
+              onRecentQuerySelect={setQuery}
+              onSubmit={handleSubmit}
+              placeholder="SELECT * FROM sales LIMIT 10"
+              query={query}
+              recentQueries={queryHistory}
+            />
+          </div>
+
+          <div className="space-y-6">
+            <ErrorDisplay message={errorMessage} />
+
+            {noticeMessage ? (
+              <section className="rounded-3xl border border-emerald-200 bg-emerald-50/90 p-5 text-sm text-emerald-900 shadow-panel">
+                {noticeMessage}
+              </section>
+            ) : null}
+
+            {result ? (
+              <ResultsTable
+                columns={result.columns}
+                executionTimeMs={result.executionTimeMs}
+                includeHeader={includeOutputHeader}
+                onCopy={handleCopyResults}
+                onDownload={handleDownloadResults}
+                onIncludeHeaderChange={setIncludeOutputHeader}
+                onOutputDelimiterChange={setOutputDelimiter}
+                outputDelimiter={outputDelimiter}
+                rowCount={result.rowCount}
+                rows={result.rows}
+                warning={result.warning}
+              />
+            ) : (
+              <section className="rounded-[2rem] border border-line/90 bg-panel/95 p-6 shadow-panel">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+                  Results
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-ink">
+                  Ready for the first query
+                </h2>
+                <p className="mt-4 text-sm leading-6 text-muted">
+                  Upload at least one file, review each file&apos;s delimiter and
+                  header settings, and run a query to see the result table here.
+                </p>
+              </section>
+            )}
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }

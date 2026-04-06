@@ -1,0 +1,4 @@
+customer_id,customer_name,segment
+1,Northwind,enterprise
+2,Contoso,midmarket
+3,Globex,smb

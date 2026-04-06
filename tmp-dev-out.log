@@ -1,0 +1,113 @@
+
+> flatfile-sql-studio@0.1.0 dev
+> next dev --hostname 127.0.0.1 --port 3000
+
+  ▲ Next.js 14.2.35
+  - Local:        http://127.0.0.1:3000
+  - Network:      http://127.0.0.1:3000
+
+ ✓ Starting...
+ ✓ Ready in 3.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 2.5s (547 modules)
+ GET / 200 in 2593ms
+ GET / 200 in 39ms
+ GET / 200 in 59ms
+ ✓ Compiled /_not-found in 369ms (532 modules)
+ GET /api/health 404 in 480ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1177ms (744 modules)
+ GET / 500 in 1455ms
+ GET / 500 in 19ms
+ GET /api/parsers 404 in 112ms
+ GET /api/health 404 in 53ms
+ ✓ Compiled in 235ms (478 modules)
+ ✓ Compiled in 204ms (478 modules)
+ ✓ Compiled in 361ms (444 modules)
+ ✓ Compiled in 456ms (444 modules)
+ ✓ Compiled in 302ms (478 modules)
+ ✓ Compiled in 743ms (444 modules)
+ ✓ Compiled in 220ms (444 modules)
+ ✓ Compiled in 206ms (444 modules)
+ ✓ Compiled in 207ms (444 modules)
+ ✓ Compiled in 183ms (444 modules)
+ ✓ Compiled in 205ms (444 modules)
+ ✓ Compiled in 467ms (444 modules)
+ ✓ Compiled in 247ms (444 modules)
+ ✓ Compiled in 252ms (444 modules)
+ ✓ Compiled in 278ms (444 modules)
+ ✓ Compiled in 204ms (444 modules)
+ ✓ Compiled in 198ms (444 modules)
+ ✓ Compiled in 205ms (444 modules)
+ ✓ Compiled in 185ms (444 modules)
+ ✓ Compiled in 203ms (444 modules)
+ ✓ Compiled in 222ms (444 modules)
+ ✓ Compiled in 179ms (444 modules)
+ ✓ Compiled in 565ms (492 modules)
+ ✓ Compiled in 188ms (444 modules)
+ ✓ Compiled in 304ms (478 modules)
+ ✓ Compiled in 261ms (444 modules)
+ ✓ Compiled in 202ms (444 modules)
+ ✓ Compiled in 256ms (444 modules)
+ ✓ Compiled in 194ms (444 modules)
+ ✓ Compiled in 218ms (444 modules)
+ ✓ Compiled in 165ms (444 modules)
+ ✓ Compiled in 168ms (444 modules)
+ ✓ Compiled in 184ms (444 modules)
+ ✓ Compiled in 206ms (444 modules)
+ ✓ Compiled in 269ms (444 modules)
+ ✓ Compiled in 331ms (444 modules)
+ ✓ Compiled in 172ms (444 modules)
+ ✓ Compiled in 178ms (444 modules)
+ ✓ Compiled in 170ms (444 modules)
+ ✓ Compiled in 204ms (444 modules)
+ ✓ Compiled in 162ms (444 modules)
+ ✓ Compiled in 205ms (444 modules)
+ ✓ Compiled in 181ms (444 modules)
+ ✓ Compiled in 174ms (444 modules)
+ ✓ Compiled in 172ms (444 modules)
+ ✓ Compiled in 138ms (444 modules)
+ ✓ Compiled in 202ms (444 modules)
+ ✓ Compiled in 162ms (444 modules)
+ ✓ Compiled in 230ms (444 modules)
+ ✓ Compiled in 169ms (444 modules)
+ ✓ Compiled in 284ms (444 modules)
+ ✓ Compiled in 233ms (444 modules)
+ ✓ Compiled in 200ms (444 modules)
+ ✓ Compiled in 215ms (444 modules)
+ ✓ Compiled in 196ms (444 modules)
+ ✓ Compiled in 180ms (444 modules)
+ ✓ Compiled in 208ms (444 modules)
+ ✓ Compiled in 226ms (444 modules)
+ ✓ Compiled in 172ms (444 modules)
+  ▲ Next.js 14.2.35
+  - Local:        http://127.0.0.1:3000
+  - Network:      http://127.0.0.1:3000
+
+ ✓ Starting...
+ ✓ Ready in 2s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 779ms (73 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 17.5s (479 modules)
+ GET /api/health 404 in 17997ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 5.1s (688 modules)
+ GET /api/health 404 in 5296ms
+ GET /api/health 404 in 64ms
+ GET /api/health 404 in 33ms
+ GET /api/health 404 in 74ms
+ GET /api/health 404 in 68ms
+ GET /api/health 404 in 20ms
+ GET /api/health 404 in 21ms
+ GET /api/health 404 in 246ms
+ GET /api/health 404 in 62ms
+ GET /api/health 404 in 39ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1327ms (744 modules)
+ GET /api/parsers 404 in 1654ms
+ GET / 200 in 1726ms
+ ✓ Compiled in 1153ms (444 modules)
+ ✓ Compiled in 1085ms (444 modules)
+ GET / 200 in 86ms
+[?25h

@@ -1,0 +1,4 @@
+int_col,float_col,text_col,mixed_col,empty_col
+1,1.1,hello,1,
+2,2.2,world,two,
+3,3.3,foo,3,

@@ -1,0 +1,5 @@
+employee_id,name,department_id,salary,city
+1,Alice,10,95000.25,Austin
+2,Bob,20,72000.00,Boston
+3,Carla,10,101500.00,Chicago
+4,Deepak,30,68000.75,Dallas

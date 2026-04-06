@@ -1,0 +1,257 @@
+{
+  "api": {
+    "scenarios": [
+      {
+        "connections": 1,
+        "latency": {
+          "p50Ms": 2,
+          "p95Ms": 119.33,
+          "p99Ms": 177
+        },
+        "requestsCompleted": 25,
+        "scenario": "small_file_simple_query"
+      },
+      {
+        "connections": 1,
+        "latency": {
+          "p50Ms": 47,
+          "p95Ms": 53,
+          "p99Ms": 53
+        },
+        "requestsCompleted": 15,
+        "scenario": "medium_file_group_by"
+      },
+      {
+        "connections": 10,
+        "latency": {
+          "p50Ms": 303,
+          "p95Ms": 406.67,
+          "p99Ms": 420
+        },
+        "requestsCompleted": 40,
+        "scenario": "medium_file_group_by_concurrent_10"
+      }
+    ]
+  },
+  "generatedAt": "2026-04-06T15:16:30.682Z",
+  "memory": {
+    "peakHeapUsedBytes": 78108320,
+    "peakHeapUsedMb": 74.49,
+    "samples": [
+      {
+        "heapUsedBytes": 15817104,
+        "rssBytes": 96874496,
+        "stage": "start"
+      },
+      {
+        "heapUsedBytes": 38333328,
+        "rssBytes": 141193216,
+        "stage": "after_csv_generation"
+      },
+      {
+        "heapUsedBytes": 45203616,
+        "rssBytes": 154931200,
+        "stage": "after_buffer_creation"
+      },
+      {
+        "heapUsedBytes": 46432632,
+        "rssBytes": 155283456,
+        "stage": "after_database_creation"
+      },
+      {
+        "heapUsedBytes": 78096072,
+        "rssBytes": 286072832,
+        "stage": "after_file_load"
+      },
+      {
+        "heapUsedBytes": 78108320,
+        "rssBytes": 285532160,
+        "stage": "after_query_execution"
+      }
+    ]
+  },
+  "parsing": {
+    "scenarios": [
+      {
+        "columnCount": 8,
+        "medianMs": 2.93,
+        "rows": 1000,
+        "runsMs": [
+          5.9,
+          2.69,
+          2.93
+        ]
+      },
+      {
+        "columnCount": 8,
+        "medianMs": 29.92,
+        "rows": 10000,
+        "runsMs": [
+          29.92,
+          33.86,
+          22.93
+        ]
+      },
+      {
+        "columnCount": 8,
+        "medianMs": 277.2,
+        "rows": 100000,
+        "runsMs": [
+          298.23,
+          277.2,
+          263.75
+        ]
+      },
+      {
+        "columnCount": 8,
+        "medianMs": 2855.15,
+        "rows": 500000,
+        "runsMs": [
+          1711.3,
+          3251.81,
+          2855.15
+        ]
+      }
+    ]
+  },
+  "query": {
+    "scenarios": [
+      {
+        "medianMs": 127.27,
+        "query": "SELECT * FROM benchmark_main",
+        "runsMs": [
+          134.91,
+          130.89,
+          129.49,
+          127.43,
+          126.69,
+          126.68,
+          127.86,
+          127.1,
+          126.14,
+          127.09
+        ],
+        "scenario": "select_all_full_scan"
+      },
+      {
+        "medianMs": 0.07,
+        "query": "SELECT * FROM benchmark_main WHERE customer_code = 'customer_00042'",
+        "runsMs": [
+          0.2,
+          0.08,
+          0.07,
+          0.07,
+          0.07,
+          0.06,
+          0.06,
+          0.06,
+          0.06,
+          0.07
+        ],
+        "scenario": "select_where_text"
+      },
+      {
+        "medianMs": 20.07,
+        "query": "SELECT * FROM benchmark_main WHERE amount > 900",
+        "runsMs": [
+          20.31,
+          19.8,
+          20.39,
+          19.83,
+          27.99,
+          19.85,
+          20.12,
+          20.04,
+          20.1,
+          20.01
+        ],
+        "scenario": "select_where_numeric"
+      },
+      {
+        "medianMs": 68.2,
+        "query": "SELECT category, COUNT(*) AS cnt, AVG(amount) AS avg_amount FROM benchmark_main GROUP BY category ORDER BY category",
+        "runsMs": [
+          69.46,
+          72.87,
+          82.55,
+          78.27,
+          68.21,
+          66.82,
+          68.19,
+          65.74,
+          67.81,
+          66.26
+        ],
+        "scenario": "group_by_count_avg"
+      },
+      {
+        "medianMs": 48.61,
+        "query": "SELECT left_table.id, right_table.region, left_table.amount FROM benchmark_join_left left_table JOIN benchmark_join_right right_table ON left_table.join_key = right_table.join_key WHERE right_table.priority > 5",
+        "runsMs": [
+          49.93,
+          49.5,
+          48.61,
+          47.53,
+          47.28,
+          49.97,
+          47.84,
+          50.94,
+          47.84,
+          48.6
+        ],
+        "scenario": "join_two_50k_tables"
+      },
+      {
+        "medianMs": 41.59,
+        "query": "SELECT id, amount FROM benchmark_main WHERE amount > (SELECT AVG(amount) FROM benchmark_main)",
+        "runsMs": [
+          41.38,
+          44.06,
+          41.8,
+          42.25,
+          39.63,
+          39.86,
+          39.57,
+          39.58,
+          53.78,
+          47.62
+        ],
+        "scenario": "subquery_with_aggregate_where"
+      },
+      {
+        "medianMs": 249.65,
+        "query": "SELECT id, customer_code, sort_key FROM benchmark_main ORDER BY sort_key DESC",
+        "runsMs": [
+          253.76,
+          246.84,
+          253.15,
+          252.74,
+          249.24,
+          247.15,
+          251.66,
+          246.9,
+          250.05,
+          245.08
+        ],
+        "scenario": "order_by_non_indexed_column"
+      },
+      {
+        "medianMs": 68.13,
+        "query": "SELECT category, COUNT(*) AS cnt, AVG(score) AS avg_score FROM benchmark_main GROUP BY category HAVING COUNT(*) > 100 ORDER BY avg_score DESC LIMIT 3",
+        "runsMs": [
+          66.87,
+          72.45,
+          61.76,
+          68.55,
+          65.89,
+          67.71,
+          68.9,
+          69.18,
+          71.84,
+          67.29
+        ],
+        "scenario": "complex_group_having_order_limit"
+      }
+    ]
+  }
+}

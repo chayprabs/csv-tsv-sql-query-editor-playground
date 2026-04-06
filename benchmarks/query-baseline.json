@@ -1,0 +1,140 @@
+{
+  "scenarios": [
+    {
+      "medianMs": 128.36,
+      "query": "SELECT * FROM benchmark_main",
+      "runsMs": [
+        136.23,
+        133.97,
+        133.94,
+        125.68,
+        123.3,
+        123.35,
+        127.23,
+        127.84,
+        128.88,
+        129.51
+      ],
+      "scenario": "select_all_full_scan"
+    },
+    {
+      "medianMs": 0.07,
+      "query": "SELECT * FROM benchmark_main WHERE customer_code = 'customer_00042'",
+      "runsMs": [
+        0.19,
+        0.08,
+        0.07,
+        0.08,
+        0.07,
+        0.07,
+        0.08,
+        0.06,
+        0.06,
+        0.07
+      ],
+      "scenario": "select_where_text"
+    },
+    {
+      "medianMs": 19.67,
+      "query": "SELECT * FROM benchmark_main WHERE amount > 900",
+      "runsMs": [
+        20.51,
+        19.72,
+        19.6,
+        19.56,
+        19.94,
+        19.63,
+        20.28,
+        19.52,
+        19.85,
+        19.56
+      ],
+      "scenario": "select_where_numeric"
+    },
+    {
+      "medianMs": 68.03,
+      "query": "SELECT category, COUNT(*) AS cnt, AVG(amount) AS avg_amount FROM benchmark_main GROUP BY category ORDER BY category",
+      "runsMs": [
+        67.26,
+        68.34,
+        66.76,
+        69.77,
+        67.08,
+        70.35,
+        71.14,
+        67.35,
+        67.72,
+        70.21
+      ],
+      "scenario": "group_by_count_avg"
+    },
+    {
+      "medianMs": 51.06,
+      "query": "SELECT left_table.id, right_table.region, left_table.amount FROM benchmark_join_left left_table JOIN benchmark_join_right right_table ON left_table.join_key = right_table.join_key WHERE right_table.priority > 5",
+      "runsMs": [
+        57.56,
+        50.38,
+        51.25,
+        52.08,
+        51.27,
+        50.1,
+        50.09,
+        49.81,
+        50.87,
+        55.86
+      ],
+      "scenario": "join_two_50k_tables"
+    },
+    {
+      "medianMs": 41.3,
+      "query": "SELECT id, amount FROM benchmark_main WHERE amount > (SELECT AVG(amount) FROM benchmark_main)",
+      "runsMs": [
+        41.31,
+        40.82,
+        41.3,
+        46,
+        40.51,
+        42.34,
+        41.54,
+        41.28,
+        45.33,
+        40.45
+      ],
+      "scenario": "subquery_with_aggregate_where"
+    },
+    {
+      "medianMs": 250.49,
+      "query": "SELECT id, customer_code, sort_key FROM benchmark_main ORDER BY sort_key DESC",
+      "runsMs": [
+        291.76,
+        264.48,
+        253.65,
+        249.05,
+        251.42,
+        250.2,
+        250.77,
+        250,
+        248.56,
+        248.2
+      ],
+      "scenario": "order_by_non_indexed_column"
+    },
+    {
+      "medianMs": 66.85,
+      "query": "SELECT category, COUNT(*) AS cnt, AVG(score) AS avg_score FROM benchmark_main GROUP BY category HAVING COUNT(*) > 100 ORDER BY avg_score DESC LIMIT 3",
+      "runsMs": [
+        67.16,
+        64.86,
+        66.5,
+        66.55,
+        63.72,
+        68.05,
+        68.04,
+        65.59,
+        67.94,
+        67.68
+      ],
+      "scenario": "complex_group_having_order_limit"
+    }
+  ]
+}

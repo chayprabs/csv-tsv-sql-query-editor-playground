@@ -1,0 +1,36 @@
+{
+  "peakHeapUsedBytes": 77885736,
+  "peakHeapUsedMb": 74.28,
+  "samples": [
+    {
+      "heapUsedBytes": 13619696,
+      "rssBytes": 91312128,
+      "stage": "start"
+    },
+    {
+      "heapUsedBytes": 39503584,
+      "rssBytes": 136630272,
+      "stage": "after_csv_generation"
+    },
+    {
+      "heapUsedBytes": 46374064,
+      "rssBytes": 150368256,
+      "stage": "after_buffer_creation"
+    },
+    {
+      "heapUsedBytes": 47538144,
+      "rssBytes": 151650304,
+      "stage": "after_database_creation"
+    },
+    {
+      "heapUsedBytes": 77873296,
+      "rssBytes": 284590080,
+      "stage": "after_file_load"
+    },
+    {
+      "heapUsedBytes": 77885736,
+      "rssBytes": 284454912,
+      "stage": "after_query_execution"
+    }
+  ]
+}
