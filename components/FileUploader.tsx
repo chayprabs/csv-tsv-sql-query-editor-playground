@@ -78,7 +78,7 @@ export function FileUploader({
             Upload Sources
           </p>
           <h2 className="mt-2 text-2xl font-semibold text-ink">
-            Drop in one or more CSV or TSV files
+            Drop in one or more CSV, TSV, or text files
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
             Each upload becomes a SQLite table named after its filename without
@@ -106,10 +106,10 @@ export function FileUploader({
           Supports multiple files. Each upload keeps its own parse settings.
         </span>
         <span className="mt-1 text-xs text-muted">
-          Accepted: `.csv`, `.tsv`
+          Accepted: `.csv`, `.tsv`, `.txt`
         </span>
         <input
-          accept=".csv,.tsv,text/csv,text/tab-separated-values"
+          accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,application/csv"
           className="hidden"
           disabled={isLoading}
           key={inputResetKey}
@@ -162,7 +162,7 @@ export function FileUploader({
                     }
                     value={file.delimiter}
                   >
-                    <option value="auto">Auto-detect</option>
+                    <option value="auto">Auto</option>
                     <option value=",">Comma (,)</option>
                     <option value={"\t"}>Tab (\t)</option>
                     <option value=";">Semicolon (;)</option>
@@ -185,9 +185,9 @@ export function FileUploader({
                     }
                     value={file.headerMode}
                   >
-                    <option value="auto">Auto-detect</option>
-                    <option value="present">First row is header</option>
-                    <option value="absent">No header row</option>
+                    <option value="auto">Auto</option>
+                    <option value="present">Present (first row is a header)</option>
+                    <option value="absent">Absent (no header row)</option>
                   </select>
                 </label>
               </div>

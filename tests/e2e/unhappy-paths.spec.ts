@@ -48,6 +48,7 @@ test.describe("unhappy paths", () => {
 
     await openHome(page);
     await uploadFiles(page, ["analyst_employees.csv"]);
+    await expect(page.getByText("analyst_employees.csv")).toBeVisible();
 
     await page.locator("button[type='submit']").evaluate((button) => {
       const htmlButton = button as HTMLButtonElement;
@@ -76,7 +77,7 @@ test.describe("unhappy paths", () => {
       await route.abort();
     });
 
-    await runQuery(page);
+    await runQuery(page, undefined, { waitForHttpResponse: false });
 
     await expect(page.getByText(/failed to fetch|network/i)).toBeVisible();
 
@@ -106,7 +107,7 @@ test.describe("unhappy paths", () => {
 
     await expect(firstPage.getByRole("cell", { name: "Alice" })).toBeVisible();
     await expect(secondPage.getByRole("cell", { name: "paid" })).toBeVisible();
-    await expect(secondPage.getByText("analyst_employees")).toHaveCount(0);
+    await expect(secondPage.getByText("analyst_employees.csv")).toHaveCount(0);
 
     await takeNamedScreenshot(firstPage, "unhappy-two-tabs-first");
     await takeNamedScreenshot(secondPage, "unhappy-two-tabs-second");

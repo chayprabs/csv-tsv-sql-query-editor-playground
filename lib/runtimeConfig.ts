@@ -8,6 +8,7 @@ const DEFAULT_MAX_QUERY_LENGTH = 10_000;
 const DEFAULT_MAX_RESPONSE_BYTES = 50 * BYTES_PER_MEGABYTE;
 const DEFAULT_MAX_RESULT_ROWS = 50_000;
 const DEFAULT_MAX_UPLOAD_BYTES = 50 * BYTES_PER_MEGABYTE;
+const DEFAULT_MAX_TOTAL_UPLOAD_BYTES = 100 * BYTES_PER_MEGABYTE;
 const DEFAULT_QUERY_TIMEOUT_MS = 30_000;
 const DEFAULT_RATE_LIMIT_BANDWIDTH_MB_PER_HOUR = 200;
 const DEFAULT_RATE_LIMIT_MAX_CONCURRENT_GLOBAL = 20;
@@ -25,7 +26,10 @@ export interface RuntimeConfig {
   maxQueryLength: number;
   maxResponseBytes: number;
   maxResultRows: number;
+  /** Per-file upload cap (bytes). */
   maxUploadBytes: number;
+  /** Combined upload cap for one request (bytes). */
+  maxTotalUploadBytes: number;
   minFileBytes: number;
   queryTimeoutMs: number;
   rateLimitBandwidthBytesPerHour: number;
@@ -65,9 +69,15 @@ export function getRuntimeConfig(): RuntimeConfig {
       "MAX_UPLOAD_BYTES",
       "NEXT_PUBLIC_MAX_UPLOAD_BYTES",
       "FLATFILE_SQL_STUDIO_MAX_UPLOAD_BYTES",
-      "FLATFILE_SQL_STUDIO_MAX_TOTAL_UPLOAD_BYTES",
     ),
     DEFAULT_MAX_UPLOAD_BYTES,
+  );
+  const maxTotalUploadBytes = parsePositiveIntegerEnv(
+    firstDefinedEnv(
+      "MAX_TOTAL_UPLOAD_BYTES",
+      "FLATFILE_SQL_STUDIO_MAX_TOTAL_UPLOAD_BYTES",
+    ),
+    DEFAULT_MAX_TOTAL_UPLOAD_BYTES,
   );
 
   return {
@@ -95,6 +105,7 @@ export function getRuntimeConfig(): RuntimeConfig {
       DEFAULT_MAX_RESULT_ROWS,
     ),
     maxUploadBytes,
+    maxTotalUploadBytes,
     minFileBytes: DEFAULT_MIN_FILE_BYTES,
     queryTimeoutMs: parsePositiveIntegerEnv(
       firstDefinedEnv("QUERY_TIMEOUT_MS", "FLATFILE_SQL_STUDIO_QUERY_TIMEOUT_MS"),

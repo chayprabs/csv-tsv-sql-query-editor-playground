@@ -8,7 +8,7 @@ export const BASE_SECURITY_HEADERS = {
 
 export const API_SECURITY_HEADERS = {
   ...BASE_SECURITY_HEADERS,
-  "Cache-Control": "no-store",
+  "Cache-Control": "no-store, max-age=0",
   "Content-Security-Policy": "default-src 'none'",
 } as const;
 

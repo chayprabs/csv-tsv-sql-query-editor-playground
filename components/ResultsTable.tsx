@@ -114,7 +114,7 @@ export function ResultsTable({
               onClick={onDownload}
               type="button"
             >
-              Download CSV
+              Download
             </button>
           </div>
         ) : null}

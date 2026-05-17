@@ -65,13 +65,13 @@ describe("EDGE_CASES sql queries", () => {
   it("SQL-12 rejects non-reader statements", () => {
     const result = runFixtureQuery("DELETE FROM basic");
 
-    expect(result.error).toBe("Only read-only SELECT-style queries are supported.");
+    expect(result.error).toBe("Only SELECT queries are supported.");
   });
 
   it("SQL-13 rejects PRAGMA statements that return rows", () => {
     const result = runFixtureQuery("PRAGMA table_info(basic)");
 
-    expect(result.error).toBe("Only read-only SELECT-style queries are supported.");
+    expect(result.error).toBe("Only SELECT queries are supported.");
   });
 
   it("SQL-21 rejects multiple statements", () => {

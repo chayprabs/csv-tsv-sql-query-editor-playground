@@ -12,16 +12,10 @@ import {
   type QueryWorkerJob,
   type QueryWorkerJobResult,
 } from "./queryWorker.ts";
+import { QueryAbortedError } from "./errorSanitizer.ts";
 import { getRuntimeConfig } from "./runtimeConfig.ts";
 
 export { QueryTimeoutError } from "./queryTimeout.ts";
-
-export class QueryAbortedError extends Error {
-  constructor() {
-    super("The request was cancelled before the query completed.");
-    this.name = "QueryAbortedError";
-  }
-}
 
 interface WorkerJobState {
   abortHandler: () => void;

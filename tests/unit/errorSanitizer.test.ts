@@ -7,6 +7,7 @@ import {
   getErrorStatus,
   getSerializableErrorStatus,
   logServerError,
+  QueryAbortedError,
   sanitizeErrorMessage,
 } from "@/lib/errorSanitizer";
 import { MemoryPressureError } from "@/lib/memoryGuard";
@@ -17,10 +18,11 @@ describe("unit/errorSanitizer", () => {
     expect(createRequestId()).toMatch(/^[a-f0-9]{8}-[a-f0-9]{4}$/);
   });
 
-  it("maps error statuses for client, timeout, memory, and unknown errors", () => {
+  it("maps error statuses for client, timeout, memory, abort, and unknown errors", () => {
     expect(getErrorStatus(new ClientError(418, "teapot"))).toBe(418);
     expect(getErrorStatus(new QueryTimeoutError(1_001))).toBe(408);
     expect(getErrorStatus(new MemoryPressureError())).toBe(503);
+    expect(getErrorStatus(new QueryAbortedError())).toBe(499);
     expect(getErrorStatus(new Error("boom"))).toBe(500);
   });
 
@@ -28,7 +30,8 @@ describe("unit/errorSanitizer", () => {
     expect(getSerializableErrorStatus(new ClientError(429, "slow down"))).toBe(429);
     expect(getSerializableErrorStatus(new QueryTimeoutError(100))).toBe(408);
     expect(getSerializableErrorStatus(new MemoryPressureError())).toBe(503);
-    expect(getSerializableErrorStatus(new Error("A SQL query is required."))).toBe(400);
+    expect(getSerializableErrorStatus(new QueryAbortedError())).toBe(499);
+    expect(getSerializableErrorStatus(new Error("Query is required"))).toBe(400);
     expect(getSerializableErrorStatus(new Error("no such table: missing"))).toBe(400);
     expect(
       getSerializableErrorStatus(
@@ -49,19 +52,15 @@ describe("unit/errorSanitizer", () => {
     ).toBe("Boom at [path]");
   });
 
-  it("normalizes known validation messages to friendlier copy", () => {
-    expect(sanitizeErrorMessage(new Error("A SQL query is required."))).toBe(
-      "Query is required",
-    );
-    expect(
-      sanitizeErrorMessage(new Error("At least one CSV or TSV file is required.")),
-    ).toBe("No files uploaded");
+  it("normalizes known validation messages to PRD copy", () => {
+    expect(sanitizeErrorMessage(new Error("Query is required"))).toBe("Query is required");
+    expect(sanitizeErrorMessage(new Error("No files uploaded"))).toBe("No files uploaded");
     expect(sanitizeErrorMessage(new Error("The file did not contain any data."))).toBe(
-      "One of the uploaded files was empty after parsing.",
+      "Could not parse the uploaded file.",
     );
-    expect(
-      sanitizeErrorMessage(new Error("Only read-only SELECT-style queries are supported.")),
-    ).toBe("Only read-only SELECT-style queries are supported.");
+    expect(sanitizeErrorMessage(new Error("Only SELECT queries are supported."))).toBe(
+      "Only SELECT queries are supported.",
+    );
   });
 
   it("maps sqlite-style table and column errors while preserving helpful planner errors", () => {
@@ -80,21 +79,20 @@ describe("unit/errorSanitizer", () => {
     ).toContain("UNION");
   });
 
-  it("maps parse, timeout, memory, and range errors to safe user-facing messages", () => {
+  it("maps parse, timeout, memory, range, worker, and unknown errors to safe user-facing messages", () => {
     expect(
       sanitizeErrorMessage(new Error('Failed to parse delimited data in "bad.csv": broken')),
-    ).toBe(
-      "Failed to parse one or more uploaded files. Check the selected encoding, delimiter, header mode, and quoting.",
-    );
-    expect(sanitizeErrorMessage(new QueryTimeoutError(1_500))).toBe(
-      "Query timed out after 2 seconds. Simplify your query.",
-    );
+    ).toBe("Could not parse the uploaded file.");
+    expect(sanitizeErrorMessage(new QueryTimeoutError(1_500))).toBe("Query execution timed out");
     expect(sanitizeErrorMessage(new MemoryPressureError())).toBe(
       "Server is under memory pressure. Try again shortly.",
     );
     expect(sanitizeErrorMessage(new RangeError("memory allocation failed"))).toBe(
-      "File is too large to process.",
+      "The query could not be completed.",
     );
+    expect(
+      sanitizeErrorMessage(new Error("Query worker exited unexpectedly with code 1.")),
+    ).toBe("Unexpected server error while processing the query.");
     expect(sanitizeErrorMessage(new Error("totally unknown internal error"))).toBe(
       "The query could not be completed.",
     );

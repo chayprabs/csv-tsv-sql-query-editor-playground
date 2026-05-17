@@ -299,15 +299,15 @@ function buildTruncationWarning(options: {
   rowLimitTruncated: boolean;
   totalRows: number;
 }): string {
+  if (options.rowLimitTruncated && !options.responseSizeTruncated) {
+    return `Results truncated to ${options.maxResultRows.toLocaleString("en-US")} rows.`;
+  }
+
   if (options.rowLimitTruncated && options.responseSizeTruncated) {
-    return `Results truncated to ${options.maxResultRows.toLocaleString()} rows and capped to stay under the 50MB response limit. Showing ${options.returnedRows.toLocaleString()} of ${options.totalRows.toLocaleString()} rows.`;
+    return `Results truncated to ${options.maxResultRows.toLocaleString("en-US")} rows and capped to stay under the 50MB response limit.`;
   }
 
-  if (options.rowLimitTruncated) {
-    return `Results truncated to ${options.maxResultRows.toLocaleString()} rows. Showing ${options.returnedRows.toLocaleString()} of ${options.totalRows.toLocaleString()} rows.`;
-  }
-
-  return `Results truncated to stay under the 50MB response limit. Showing ${options.returnedRows.toLocaleString()} of ${options.totalRows.toLocaleString()} rows.`;
+  return "Results truncated to stay under the 50MB response limit.";
 }
 
 export function executeReaderQuery(
@@ -332,17 +332,17 @@ export function executeReaderQuery(
   const normalizedQuery = normalizeQuery(query);
 
   if (!normalizedQuery) {
-    throw new Error("A SQL query is required.");
+    throw new Error("Query is required");
   }
 
   if (!isAllowedReaderQuery(normalizedQuery)) {
-    throw new Error("Only read-only SELECT-style queries are supported.");
+    throw new Error("Only SELECT queries are supported.");
   }
 
   const statement = database.prepare(normalizedQuery);
 
   if (!statement.reader) {
-    throw new Error("Only read-only SELECT-style queries are supported.");
+    throw new Error("Only SELECT queries are supported.");
   }
 
   const columns = statement.columns().map((column) => column.name);

@@ -164,11 +164,9 @@ describe("queryEngine", () => {
   it("rejects empty or mutating queries before execution", () => {
     const database = createTrackedDatabase();
 
-    expect(() => executeReaderQuery(database, "   ")).toThrow(
-      "A SQL query is required.",
-    );
+    expect(() => executeReaderQuery(database, "   ")).toThrow("Query is required");
     expect(() => executeReaderQuery(database, "DELETE FROM sqlite_master")).toThrow(
-      "Only read-only SELECT-style queries are supported.",
+      "Only SELECT queries are supported.",
     );
   });
 

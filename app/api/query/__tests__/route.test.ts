@@ -93,7 +93,7 @@ describe("POST /api/query", () => {
     const payload = await readJson(response);
 
     expect(response.status).toBe(400);
-    expect(payload.error).toBe("At least one CSV or TSV file is required.");
+    expect(payload.error).toBe("No files uploaded");
   });
 
   it('returns 400 when files are uploaded without a query', async () => {
@@ -106,7 +106,7 @@ describe("POST /api/query", () => {
     const payload = await readJson(response);
 
     expect(response.status).toBe(400);
-    expect(payload.error).toBe("Query is required.");
+    expect(payload.error).toBe("Query is required");
   });
 
   it("returns 413 when uploads exceed the configured 50MB request cap", async () => {
@@ -125,9 +125,7 @@ describe("POST /api/query", () => {
     const payload = await readJson(response);
 
     expect(response.status).toBe(413);
-    expect(payload.error).toContain(
-      "Upload too large. Maximum total upload size is 50MB.",
-    );
+    expect(payload.error).toBe("File too large");
   });
 
   it("rejects non-CSV uploads with a clear 400 error", async () => {
@@ -146,7 +144,7 @@ describe("POST /api/query", () => {
     const payload = await readJson(response);
 
     expect(response.status).toBe(400);
-    expect(payload.error?.toLowerCase()).toMatch(/csv|tsv|text|delimited/);
+    expect(payload.error).toBe("Only CSV, TSV, and TXT text files are supported.");
   });
 
   it("supports valid multi-file joins", async () => {
@@ -241,7 +239,7 @@ describe("POST /api/query", () => {
     const payload = await readJson(response);
 
     expect(response.status).toBe(400);
-    expect(payload.error).toBe("File empty.csv is empty.");
+    expect(payload.error).toBe("File is empty");
   });
 
   it("includes an executionTimeMs value greater than zero", async () => {

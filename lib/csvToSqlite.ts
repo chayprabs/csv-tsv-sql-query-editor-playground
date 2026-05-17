@@ -54,7 +54,7 @@ export function executeCsvQuery({
 
   try {
     if (files.length === 0) {
-      throw new Error("At least one CSV or TSV file is required.");
+      throw new Error("No files uploaded");
     }
 
     assertHeapWithinLimit(runtimeConfig.maxHeapMb);

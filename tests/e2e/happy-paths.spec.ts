@@ -19,7 +19,7 @@ test.describe("happy paths", () => {
     await openHome(page);
     await uploadFiles(page, ["analyst_employees.csv"]);
 
-    await expect(page.getByText("analyst_employees")).toBeVisible();
+    await expect(page.getByText("analyst_employees.csv")).toBeVisible();
     await expect(page.getByText("employee_id: INTEGER")).toBeVisible();
 
     await runQuery(page);
@@ -28,10 +28,10 @@ test.describe("happy paths", () => {
     await expect(page.getByRole("columnheader", { name: "salary" })).toBeVisible();
 
     const downloadPromise = page.waitForEvent("download");
-    await page.getByRole("button", { name: /download csv/i }).click();
+    await page.getByRole("button", { name: /^download$/i }).click();
     const download = await downloadPromise;
 
-    expect(download.suggestedFilename()).toBe("query-results.csv");
+    expect(download.suggestedFilename()).toBe("results.csv");
 
     await takeNamedScreenshot(page, "happy-analyst-single-file");
     await expectHealthyPage(tracker);

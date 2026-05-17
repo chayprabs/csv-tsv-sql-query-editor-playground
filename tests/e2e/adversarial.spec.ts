@@ -20,7 +20,7 @@ test.describe("adversarial inputs", () => {
     await runQuery(page);
 
     await expect(
-      page.getByText(/Only text-based CSV and TSV files are supported/),
+      page.getByText(/Only text-based CSV, TSV, and TXT files are supported/),
     ).toBeVisible();
 
     await takeNamedScreenshot(page, "adversarial-binary-upload");
@@ -37,7 +37,7 @@ test.describe("adversarial inputs", () => {
     await runQuery(page);
 
     await expect(
-      page.getByText(/Failed to parse one or more uploaded files\./),
+      page.getByText(/Could not parse the uploaded file/),
     ).toBeVisible();
 
     await takeNamedScreenshot(page, "adversarial-broken-quotes");

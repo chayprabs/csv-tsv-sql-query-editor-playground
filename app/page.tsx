@@ -92,14 +92,10 @@ function formatHeaderNotice(files: FilePreview[]): string | null {
 
 function downloadFilename(delimiter: SupportedDelimiter): string {
   if (delimiter === "\t") {
-    return "query-results.tsv";
+    return "results.tsv";
   }
 
-  if (delimiter === ";") {
-    return "query-results-semicolon.csv";
-  }
-
-  return "query-results.csv";
+  return "results.csv";
 }
 
 function downloadMimeType(delimiter: SupportedDelimiter): string {
@@ -426,12 +422,14 @@ export default function Home() {
     }
 
     if (uploadedFiles.length === 0) {
-      setErrorMessage("Upload at least one CSV or TSV file before running a query.");
+      setNoticeMessage("Upload at least one CSV or TSV file to get started.");
+      setErrorMessage(null);
       return;
     }
 
     if (!query.trim()) {
-      setErrorMessage("Write a SQL query before running it.");
+      setNoticeMessage("Enter a SQL query to run.");
+      setErrorMessage(null);
       return;
     }
 
@@ -528,7 +526,7 @@ export default function Home() {
       await navigator.clipboard.writeText(content);
       setNoticeMessage("Results copied to the clipboard.");
     } catch {
-      setErrorMessage("Unable to copy results to the clipboard.");
+      // Clipboard failures are ignored (no user-facing error).
     }
   }
 
@@ -537,7 +535,7 @@ export default function Home() {
       await navigator.clipboard.writeText(stringifyClipboardUrl());
       setNoticeMessage("Share link copied to the clipboard.");
     } catch {
-      setErrorMessage("Unable to copy the share link.");
+      // Clipboard failures are ignored (no user-facing error).
     }
   }
 
@@ -546,18 +544,18 @@ export default function Home() {
       <div className="mx-auto max-w-7xl">
         <section className="rounded-[2.4rem] border border-line/80 bg-[#fffaf1]/80 px-6 py-8 shadow-panel md:px-8">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">
-            Flatfile SQL Studio
+            Quarry
           </p>
           <div className="mt-4 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
             <div>
               <h1 className="max-w-3xl text-4xl font-semibold tracking-[-0.03em] text-ink md:text-6xl">
-                Query raw CSV and TSV files with SQLite, right in the browser.
+                Run SQL on CSV and TSV files — server-side, nothing stored.
               </h1>
             </div>
             <p className="max-w-xl text-sm leading-7 text-muted md:text-base">
-              Upload one file or a handful, inspect the inferred schema, and run
-              familiar SQLite queries against each uploaded table. Each file
-              becomes its own table, so joins work naturally.
+              Upload one or more delimited files, confirm the inferred schema, and run
+              read-only SQLite queries including joins. Each request uses a fresh in-memory
+              database on the server; files are not written to disk.
             </p>
           </div>
         </section>

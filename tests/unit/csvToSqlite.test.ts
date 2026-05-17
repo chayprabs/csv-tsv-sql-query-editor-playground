@@ -6,12 +6,10 @@ describe("unit/csvToSqlite", () => {
   it("maps known validation errors to friendly text", () => {
     expect(
       sanitizeErrorMessage(new Error('Failed to parse delimited data in "bad.csv": broken')),
-    ).toBe(
-      "Failed to parse one or more uploaded files. Check the selected encoding, delimiter, header mode, and quoting.",
-    );
+    ).toBe("Could not parse the uploaded file.");
     expect(
       sanitizeErrorMessage(new Error("The file did not contain any columns.")),
-    ).toBe("One of the uploaded files was empty after parsing.");
+    ).toBe("Could not parse the uploaded file.");
   });
 
   it("keeps supported sqlite planner errors verbatim and hides unknown ones", () => {

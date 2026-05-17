@@ -235,7 +235,7 @@ describe("POST /api/query (live dev server)", () => {
     const missingQueryPayload = await readJson(missingQueryResponse);
 
     expect(missingQueryResponse.status).toBe(400);
-    expect(missingQueryPayload.error).toBe("Query is required.");
+    expect(missingQueryPayload.error).toBe("Query is required");
 
     const missingFileResponse = await postFormData(
       buildFormData({
@@ -245,7 +245,7 @@ describe("POST /api/query (live dev server)", () => {
     const missingFilePayload = await readJson(missingFileResponse);
 
     expect(missingFileResponse.status).toBe(400);
-    expect(missingFilePayload.error).toBe("At least one CSV or TSV file is required.");
+    expect(missingFilePayload.error).toBe("No files uploaded");
   });
 
   it("keeps collided table names isolated after sanitization", async () => {
@@ -346,9 +346,7 @@ describe("POST /api/query (live dev server)", () => {
     const abovePayload = await readJson(aboveResponse);
 
     expect(aboveResponse.status).toBe(413);
-    expect(abovePayload.error).toContain(
-      "Upload too large. Maximum total upload size is",
-    );
+    expect(abovePayload.error).toBe("File too large");
   });
 
   it("returns a clean not-found error when the query references a different filename", async () => {

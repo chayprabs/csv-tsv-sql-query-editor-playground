@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+
+import { SiteFooter } from "@/components/SiteFooter";
+
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -14,9 +17,12 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Flatfile SQL Studio",
+  title: {
+    default: "Quarry",
+    template: "%s — Quarry",
+  },
   description:
-    "Upload delimited files, map them to SQLite tables, and run ad hoc queries in the browser.",
+    "Upload CSV, TSV, or text files, map them to SQLite tables, and run read-only SQL on the server — nothing is stored after the request.",
 };
 
 export default function RootLayout({
@@ -29,7 +35,10 @@ export default function RootLayout({
       lang="en"
       className={`${spaceGrotesk.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <div className="flex-1">{children}</div>
+        <SiteFooter />
+      </body>
     </html>
   );
 }

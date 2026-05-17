@@ -255,9 +255,7 @@ describe("csvToSqlite", () => {
       "SELECT * FROM broken",
     );
 
-    expect(result.error).toBe(
-      "Failed to parse one or more uploaded files. Check the selected encoding, delimiter, header mode, and quoting.",
-    );
+    expect(result.error).toBe("Could not parse the uploaded file.");
   });
 
   it("returns a structured table-not-found error", () => {
@@ -283,7 +281,7 @@ describe("csvToSqlite", () => {
       "SELECT * FROM empty",
     );
 
-    expect(result.error).toBe("One of the uploaded files was empty after parsing.");
+    expect(result.error).toBe("Could not parse the uploaded file.");
   });
 
   it("returns a friendly validation error when no files are provided", () => {

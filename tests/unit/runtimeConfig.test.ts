@@ -16,6 +16,7 @@ describe("unit/runtimeConfig", () => {
 
       expect(config.maxFileCount).toBe(20);
       expect(config.maxUploadBytes).toBe(50 * 1024 * 1024);
+      expect(config.maxTotalUploadBytes).toBe(100 * 1024 * 1024);
     } finally {
       if (previousFiles === undefined) {
         delete process.env.FLATFILE_SQL_STUDIO_MAX_FILES_PER_REQUEST;

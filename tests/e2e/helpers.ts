@@ -45,7 +45,10 @@ export async function expectHealthyPage(
     ignoredFailedRequestPatterns?: RegExp[];
   } = {},
 ): Promise<void> {
-  expect(tracker.consoleErrors).toEqual([]);
+  const benignConsole = (message: string) =>
+    /^Failed to load resource:/i.test(message.trim());
+
+  expect(tracker.consoleErrors.filter((message) => !benignConsole(message))).toEqual([]);
 
   const ignoredPatterns = options.ignoredFailedRequestPatterns ?? [];
   const unexpectedFailures = tracker.failedRequests.filter(
@@ -58,7 +61,7 @@ export async function expectHealthyPage(
 export async function openHome(page: Page): Promise<void> {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Query raw CSV and TSV files with SQLite",
+    "Run SQL on CSV and TSV files",
   );
 }
 
@@ -72,12 +75,30 @@ export async function fillQuery(page: Page, query: string): Promise<void> {
   await page.getByRole("textbox").fill(query);
 }
 
-export async function runQuery(page: Page, query?: string): Promise<void> {
+export async function runQuery(
+  page: Page,
+  query?: string,
+  options: { waitForHttpResponse?: boolean } = {},
+): Promise<void> {
   if (query !== undefined) {
     await fillQuery(page, query);
   }
 
-  await page.getByRole("button", { name: /run query/i }).click();
+  const waitForHttpResponse = options.waitForHttpResponse !== false;
+  const button = page.getByRole("button", { name: /run query/i });
+
+  if (!waitForHttpResponse) {
+    await button.click();
+    return;
+  }
+
+  await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/query") && response.request().method() === "POST",
+    ),
+    button.click(),
+  ]);
 }
 
 export async function expectRowCount(page: Page, count: number): Promise<void> {

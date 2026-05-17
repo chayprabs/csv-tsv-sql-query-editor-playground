@@ -18,8 +18,14 @@ export default defineConfig({
   },
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1 --port 3000",
+    env: {
+      RATE_LIMIT_BANDWIDTH_MB_PER_HOUR: "4096",
+      RATE_LIMIT_MAX_CONCURRENT_GLOBAL: "100",
+      RATE_LIMIT_MAX_CONCURRENT_PER_IP: "100",
+      RATE_LIMIT_REQUESTS_PER_MINUTE: "10000",
+    },
     port: 3000,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
   projects: [

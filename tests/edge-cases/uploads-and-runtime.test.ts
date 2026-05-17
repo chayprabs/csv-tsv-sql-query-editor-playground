@@ -64,7 +64,7 @@ describe("EDGE_CASES uploads and runtime", () => {
     const payload = (await response.json()) as { error?: string };
 
     expect(response.status).toBe(400);
-    expect(payload.error).toBe("One of the uploaded files was empty after parsing.");
+    expect(payload.error).toBe("Could not parse the uploaded file.");
   });
 
   it("UP-05 rejects a binary payload that is disguised as a CSV", async () => {
@@ -81,7 +81,9 @@ describe("EDGE_CASES uploads and runtime", () => {
     const payload = (await response.json()) as { error?: string };
 
     expect(response.status).toBe(400);
-    expect(payload.error).toBe("Could not parse the uploaded file.");
+    expect(payload.error).toBe(
+      "Only text-based CSV, TSV, and TXT files are supported.",
+    );
   });
 
   it("UP-12 rejects requests that exceed the file-count limit", async () => {
@@ -114,7 +116,7 @@ describe("EDGE_CASES uploads and runtime", () => {
       const payload = (await response.json()) as { error?: string };
 
       expect(response.status).toBe(413);
-      expect(payload.error).toContain("Upload too large.");
+      expect(payload.error).toBe("Total upload size is too large");
     });
   });
 
@@ -130,7 +132,7 @@ describe("EDGE_CASES uploads and runtime", () => {
       const payload = (await response.json()) as { error?: string };
 
       expect(response.status).toBe(408);
-      expect(payload.error).toContain("Query timed out");
+      expect(payload.error).toContain("Query execution timed out");
     });
   });
 });

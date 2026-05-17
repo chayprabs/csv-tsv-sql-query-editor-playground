@@ -46,6 +46,13 @@ export class ClientError extends Error {
   }
 }
 
+export class QueryAbortedError extends Error {
+  constructor() {
+    super("The request was cancelled before the query completed.");
+    this.name = "QueryAbortedError";
+  }
+}
+
 function stripSensitiveDetails(message: string): string {
   return message
     .replace(STACK_TRACE_PATTERN, " ")
@@ -85,6 +92,10 @@ export function getErrorStatus(error: unknown): number {
     return error.status;
   }
 
+  if (error instanceof QueryAbortedError) {
+    return 499;
+  }
+
   if (error instanceof QueryTimeoutError) {
     return 408;
   }
@@ -96,17 +107,16 @@ export function getErrorStatus(error: unknown): number {
   return 500;
 }
 
+const KNOWN_VALIDATION_MESSAGES = new Set([
+  "Query is required",
+  "No files uploaded",
+  "Only SELECT queries are supported.",
+  "The file did not contain any data.",
+  "The file did not contain any columns.",
+]);
+
 function isKnownValidationMessage(message: string): boolean {
-  return [
-    "A SQL query is required.",
-    "Query is required",
-    "Query is required.",
-    "At least one CSV or TSV file is required.",
-    "No files uploaded",
-    "Only read-only SELECT-style queries are supported.",
-    "The file did not contain any data.",
-    "The file did not contain any columns.",
-  ].includes(message);
+  return KNOWN_VALIDATION_MESSAGES.has(message);
 }
 
 function isKnownValidationError(error: unknown): boolean {
@@ -126,6 +136,10 @@ export function getSerializableErrorStatus(error: unknown): number | undefined {
     return 503;
   }
 
+  if (error instanceof QueryAbortedError) {
+    return 499;
+  }
+
   if (isSqliteError(error) || isParseError(error) || isKnownValidationError(error)) {
     return 400;
   }
@@ -138,6 +152,10 @@ export function sanitizeErrorMessage(error: unknown): string {
     return stripSensitiveDetails(error.message);
   }
 
+  if (error instanceof QueryAbortedError) {
+    return error.message;
+  }
+
   if (error instanceof QueryTimeoutError) {
     return error.message;
   }
@@ -147,29 +165,24 @@ export function sanitizeErrorMessage(error: unknown): string {
   }
 
   if (error instanceof Error && isKnownValidationMessage(error.message)) {
-    if (
-      error.message === "A SQL query is required." ||
-      error.message === "Query is required" ||
-      error.message === "Query is required."
-    ) {
+    if (error.message === "Query is required") {
       return "Query is required";
     }
 
-    if (
-      error.message === "At least one CSV or TSV file is required." ||
-      error.message === "No files uploaded"
-    ) {
+    if (error.message === "No files uploaded") {
       return "No files uploaded";
+    }
+
+    if (error.message === "Only SELECT queries are supported.") {
+      return "Only SELECT queries are supported.";
     }
 
     if (
       error.message === "The file did not contain any data." ||
       error.message === "The file did not contain any columns."
     ) {
-      return "One of the uploaded files was empty after parsing.";
+      return "Could not parse the uploaded file.";
     }
-
-    return stripSensitiveDetails(error.message);
   }
 
   if (error instanceof Error && isSqliteError(error)) {
@@ -187,11 +200,18 @@ export function sanitizeErrorMessage(error: unknown): string {
   }
 
   if (isParseError(error)) {
-    return "Failed to parse one or more uploaded files. Check the selected encoding, delimiter, header mode, and quoting.";
+    return "Could not parse the uploaded file.";
+  }
+
+  if (
+    error instanceof Error &&
+    /worker exited unexpectedly|Query worker exited/i.test(error.message)
+  ) {
+    return "Unexpected server error while processing the query.";
   }
 
   if (error instanceof RangeError && /memory/i.test(error.message)) {
-    return "File is too large to process.";
+    return "The query could not be completed.";
   }
 
   return "The query could not be completed.";

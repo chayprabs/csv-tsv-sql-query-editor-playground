@@ -1,10 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import {
-  QueryAbortedError,
-  runQueryInWorkerPool,
-  shutdownQueryWorkerPool,
-} from "@/lib/queryWorkerPool";
+import { QueryAbortedError } from "@/lib/errorSanitizer";
+import { runQueryInWorkerPool, shutdownQueryWorkerPool } from "@/lib/queryWorkerPool";
 
 afterEach(async () => {
   await shutdownQueryWorkerPool();

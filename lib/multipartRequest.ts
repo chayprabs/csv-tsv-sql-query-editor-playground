@@ -30,14 +30,26 @@ interface ParseMultipartRequestOptions {
   signal?: AbortSignal;
 }
 
-const SUPPORTED_FILE_EXTENSIONS = new Set([".csv", ".tsv"]);
+const SUPPORTED_FILE_EXTENSIONS = new Set([".csv", ".tsv", ".txt"]);
 
-function formatByteLimit(limitBytes: number): string {
-  if (limitBytes < 1024 * 1024) {
-    return `${Math.ceil(limitBytes / 1024)}KB`;
+function isAllowedUploadMimeType(mimeType: string): boolean {
+  const normalized = mimeType.trim().toLowerCase();
+
+  if (normalized.length === 0) {
+    return true;
   }
 
-  return `${Math.round(limitBytes / (1024 * 1024))}MB`;
+  if (normalized === "application/csv" || normalized === "application/vnd.ms-excel") {
+    return true;
+  }
+
+  return normalized.startsWith("text/");
+}
+
+function assertAllowedFileMimeType(mimeType: string): void {
+  if (!isAllowedUploadMimeType(mimeType)) {
+    throw new ClientError(400, "Only CSV, TSV, and TXT text files are supported.");
+  }
 }
 
 function toIncomingHeaders(headers: Headers): IncomingHttpHeaders {
@@ -71,7 +83,7 @@ function validateFileExtension(filename: string): void {
   const extension = path.extname(filename).toLowerCase();
 
   if (!SUPPORTED_FILE_EXTENSIONS.has(extension)) {
-    throw new ClientError(400, "Only CSV and TSV files are supported.");
+    throw new ClientError(400, "Only CSV, TSV, and TXT text files are supported.");
   }
 }
 
@@ -113,7 +125,7 @@ export async function parseMultipartRequest(
         callback(
           new ClientError(
             413,
-            `Upload too large. Maximum total upload size is ${formatByteLimit(options.maxTotalUploadBytes)}.`,
+            "Total upload size is too large",
           ),
         );
         return;
@@ -158,7 +170,7 @@ export async function parseMultipartRequest(
 
     const abortError = new ClientError(
       499,
-      "The request was cancelled before the upload completed.",
+      "The request was cancelled before the query completed.",
     );
 
     failParsing(abortError);
@@ -249,8 +261,8 @@ export async function parseMultipartRequest(
       stream.on("limit", () => {
         finish(
           new ClientError(
-            400,
-            `File ${info.filename} exceeds the maximum size of ${formatByteLimit(options.maxFileBytes)}.`,
+            413,
+            "File too large",
           ),
         );
       });
@@ -266,8 +278,8 @@ export async function parseMultipartRequest(
         if (fileSize > options.maxFileBytes) {
           finish(
             new ClientError(
-              400,
-              `File ${info.filename} exceeds the maximum size of ${formatByteLimit(options.maxFileBytes)}.`,
+              413,
+              "File too large",
             ),
           );
           return;
@@ -277,7 +289,7 @@ export async function parseMultipartRequest(
           finish(
             new ClientError(
               413,
-              `Upload too large. Maximum total upload size is ${formatByteLimit(options.maxTotalUploadBytes)}.`,
+              "Total upload size is too large",
             ),
           );
           return;
@@ -296,7 +308,14 @@ export async function parseMultipartRequest(
         }
 
         if (fileSize < options.minFileBytes) {
-          finish(new ClientError(400, `File ${info.filename} is empty.`));
+          finish(new ClientError(400, "File is empty"));
+          return;
+        }
+
+        try {
+          assertAllowedFileMimeType(info.mimeType);
+        } catch (error) {
+          finish(error instanceof Error ? error : new Error(String(error)));
           return;
         }
 

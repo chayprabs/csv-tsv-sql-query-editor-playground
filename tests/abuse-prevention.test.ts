@@ -173,6 +173,7 @@ describe("Layer 1 - Request size hard limit", () => {
 
     await withEnv(
       {
+        MAX_TOTAL_UPLOAD_BYTES: String(request.body.length),
         MAX_UPLOAD_BYTES: String(request.body.length),
       },
       async () => {
@@ -201,6 +202,7 @@ describe("Layer 1 - Request size hard limit", () => {
 
     await withEnv(
       {
+        MAX_TOTAL_UPLOAD_BYTES: String(request.body.length - 1),
         MAX_UPLOAD_BYTES: String(request.body.length - 1),
       },
       async () => {
@@ -218,9 +220,7 @@ describe("Layer 1 - Request size hard limit", () => {
         const payload = await readJson<{ error: string }>(response);
 
         expect(response.status).toBe(413);
-        expect(payload.error).toContain(
-          "Upload too large. Maximum total upload size is",
-        );
+        expect(payload.error).toBe("Total upload size is too large");
       },
     );
   });
@@ -233,6 +233,7 @@ describe("Layer 1 - Request size hard limit", () => {
 
     await withEnv(
       {
+        MAX_TOTAL_UPLOAD_BYTES: "128",
         MAX_UPLOAD_BYTES: "128",
       },
       async () => {
@@ -261,7 +262,7 @@ describe("Layer 1 - Request size hard limit", () => {
     const payload = await readJson<{ error: string }>(response);
 
     expect(response.status).toBe(400);
-    expect(payload.error).toBe("File empty.csv is empty.");
+    expect(payload.error).toBe("File is empty");
   });
 });
 
@@ -368,7 +369,7 @@ describe("Layer 3 - Validation", () => {
     const blockedPayload = await readJson<{ error: string }>(blockedResponse);
 
     expect(blockedResponse.status).toBe(400);
-    expect(blockedPayload.error).toBe("Only CSV and TSV files are supported.");
+    expect(blockedPayload.error).toBe("Only CSV, TSV, and TXT text files are supported.");
 
     const okResponse = await postMultipart({
       fields: { query: "SELECT 1" },
@@ -427,7 +428,7 @@ describe("Layer 3 - Validation", () => {
     });
     const emptyQueryPayload = await readJson<{ error: string }>(emptyQueryResponse);
     expect(emptyQueryResponse.status).toBe(400);
-    expect(emptyQueryPayload.error).toBe("Query is required.");
+    expect(emptyQueryPayload.error).toBe("Query is required");
 
     const whitespaceQueryResponse = await postMultipart({
       fields: { query: "    " },
@@ -437,7 +438,7 @@ describe("Layer 3 - Validation", () => {
       whitespaceQueryResponse,
     );
     expect(whitespaceQueryResponse.status).toBe(400);
-    expect(whitespaceQueryPayload.error).toBe("Query is required.");
+    expect(whitespaceQueryPayload.error).toBe("Query is required");
 
     const response = await POST(
       new Request("http://localhost/api/query", {
@@ -485,9 +486,7 @@ describe("Layer 4 - Query timeout", () => {
           const payload = await readJson<{ error: string }>(response);
 
           expect(response.status).toBe(408);
-          expect(payload.error).toBe(
-            "Query timed out after 1 seconds. Simplify your query.",
-          );
+          expect(payload.error).toBe("Query execution timed out");
           expect(payload.error).not.toMatch(/sqlite|better-sqlite3|internal/i);
         },
       );
@@ -687,7 +686,7 @@ describe("Layer 8 - Security headers", () => {
     expect(response.headers.get("permissions-policy")).toBe(
       "camera=(), microphone=()",
     );
-    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     expect(response.headers.get("content-security-policy")).toBe("default-src 'none'");
   });
 
@@ -699,7 +698,7 @@ describe("Layer 8 - Security headers", () => {
 
     expect(response.status).toBe(400);
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");
-    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
   });
 
   it("applies middleware security headers to API routes", () => {
@@ -707,7 +706,7 @@ describe("Layer 8 - Security headers", () => {
       new Request("http://localhost/api/query") as unknown as Parameters<typeof middleware>[0],
     );
 
-    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     expect(response.headers.get("content-security-policy")).toBe("default-src 'none'");
   });
 });
@@ -716,7 +715,7 @@ describe("Default security headers helper", () => {
   it("creates API security headers for route handlers", () => {
     const headers = createSecurityHeaders(true);
 
-    expect(headers.get("cache-control")).toBe("no-store");
+    expect(headers.get("cache-control")).toBe("no-store, max-age=0");
     expect(headers.get("content-security-policy")).toBe("default-src 'none'");
   });
 });

@@ -8,6 +8,7 @@ import {
 import {
   ClientError,
   getSerializableErrorStatus,
+  QueryAbortedError,
   sanitizeErrorMessage,
 } from "./errorSanitizer.ts";
 import { MemoryPressureError } from "./memoryGuard.ts";
@@ -59,6 +60,15 @@ function serializeError(error: unknown): SerializedWorkerError {
       retryAfterSeconds: error.retryAfterSeconds,
       stack: error.stack,
       status: error.status,
+    };
+  }
+
+  if (error instanceof QueryAbortedError) {
+    return {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      status: 499,
     };
   }
 

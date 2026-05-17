@@ -7,6 +7,7 @@ import {
   createRequestId,
   getErrorStatus,
   logServerError,
+  QueryAbortedError,
 } from "@/lib/errorSanitizer";
 import type { FileParseOptions } from "@/lib/fileParsing";
 import {
@@ -35,14 +36,6 @@ import { runQueryInWorkerPool } from "@/lib/queryWorkerPool";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function formatByteLimit(limitBytes: number): string {
-  if (limitBytes < 1024 * 1024) {
-    return `${Math.ceil(limitBytes / 1024)}KB`;
-  }
-
-  return `${Math.round(limitBytes / (1024 * 1024))}MB`;
-}
 
 function createApiHeaders(requestId: string): Headers {
   const headers = createSecurityHeaders(true);
@@ -210,7 +203,7 @@ function validateQuery(query: string, maxQueryLength: number): string {
   const trimmedQuery = query.trim();
 
   if (!trimmedQuery) {
-    throw new ClientError(400, "Query is required.");
+    throw new ClientError(400, "Query is required");
   }
 
   if (trimmedQuery.length > maxQueryLength) {
@@ -236,12 +229,9 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     if (
       contentLength !== undefined &&
-      contentLength > runtimeConfig.maxUploadBytes
+      contentLength > runtimeConfig.maxTotalUploadBytes
     ) {
-      throw new ClientError(
-        413,
-        `Upload too large. Maximum total upload size is ${formatByteLimit(runtimeConfig.maxUploadBytes)}.`,
-      );
+      throw new ClientError(413, "Total upload size is too large");
     }
 
     const requestRate = await checkRateLimit(clientIp);
@@ -276,7 +266,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       maxFileCount: runtimeConfig.maxFileCount,
       maxFilenameLength: runtimeConfig.maxFilenameLength,
       maxFileBytes: runtimeConfig.maxUploadBytes,
-      maxTotalUploadBytes: runtimeConfig.maxUploadBytes,
+      maxTotalUploadBytes: runtimeConfig.maxTotalUploadBytes,
       minFileBytes: runtimeConfig.minFileBytes,
       signal: request.signal,
     });
@@ -300,14 +290,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     if (parsedRequest.files.length === 0) {
-      throw new ClientError(400, "At least one CSV or TSV file is required.");
+      throw new ClientError(400, "No files uploaded");
     }
 
-    if (parsedRequest.totalFileBytes > runtimeConfig.maxUploadBytes) {
-      throw new ClientError(
-        413,
-        `Upload too large. Maximum total upload size is ${formatByteLimit(runtimeConfig.maxUploadBytes)}.`,
-      );
+    if (parsedRequest.totalFileBytes > runtimeConfig.maxTotalUploadBytes) {
+      throw new ClientError(413, "Total upload size is too large");
     }
 
     const query = validateQuery(
@@ -333,7 +320,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     const binaryFile = queryFiles.find((file) => isLikelyBinaryContent(file.buffer));
 
     if (binaryFile) {
-      throw new ClientError(400, "Could not parse the uploaded file.");
+      throw new ClientError(
+        400,
+        "Only text-based CSV, TSV, and TXT files are supported.",
+      );
     }
 
     assertHeapWithinLimit(runtimeConfig.maxHeapMb);
@@ -353,7 +343,9 @@ export async function POST(request: Request): Promise<NextResponse> {
       status: 200,
     });
   } catch (error) {
-    if (!(error instanceof ClientError) || error.status >= 500) {
+    const status = getErrorStatus(error);
+
+    if (status >= 500 || (!(error instanceof ClientError) && !(error instanceof QueryAbortedError))) {
       logServerError(requestId, error, {
         contentLength,
         ip: clientIp,

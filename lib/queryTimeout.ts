@@ -2,9 +2,7 @@ export class QueryTimeoutError extends Error {
   readonly timeoutMs: number;
 
   constructor(timeoutMs: number) {
-    super(
-      `Query timed out after ${Math.ceil(timeoutMs / 1000)} seconds. Simplify your query.`,
-    );
+    super("Query execution timed out");
     this.name = "QueryTimeoutError";
     this.timeoutMs = timeoutMs;
   }
@@ -34,6 +32,8 @@ export function executeWithTimeout<T>(
 
     throw error;
   } finally {
-    clearTimeout(timer);
+    if (!timedOut) {
+      clearTimeout(timer);
+    }
   }
 }
