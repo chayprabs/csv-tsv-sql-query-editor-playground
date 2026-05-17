@@ -29,6 +29,8 @@ jobs:
       - name: License check
         run: npx license-checker --production --failOn GPL,AGPL,LGPL
 
+      # PRD §21 suggests failing on high/critical; Next 14 currently reports high
+      # severity advisories fixed only via Next 16 (breaking). We fail on critical.
       - name: npm audit
         run: npm audit --audit-level=critical
 

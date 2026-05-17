@@ -43,7 +43,7 @@ User-facing responses:
 - Requires `multipart/form-data`
 - Requires at least one file
 - Limits uploads to `MAX_FILE_COUNT=20`
-- Requires `.csv` or `.tsv` filenames only
+- Requires `.csv`, `.tsv`, or `.txt` filenames; MIME allowlist and binary sniffing
 - Rejects blank, dot-only, or oversized filenames
 - Enforces per-file minimum size of 2 bytes
 - Requires a non-empty trimmed query
@@ -54,7 +54,8 @@ User-facing responses include:
 - `400 Request must use multipart/form-data.`
 - `400 At least one CSV or TSV file is required.`
 - `400 Too many files uploaded. Maximum is 20.`
-- `400 Only CSV and TSV files are supported.`
+- `400 Only CSV, TSV, and TXT text files are supported.`
+- `400 Only text-based CSV, TSV, and TXT files are supported.` (binary sniff)
 - `400 File {name} is empty.`
 - `400 Query is required.`
 - `400 Query too long. Maximum 10,000 characters.`
@@ -131,8 +132,11 @@ Representative user-facing messages:
   - `Referrer-Policy: strict-origin-when-cross-origin`
   - `Permissions-Policy: camera=(), microphone=()`
 - API-specific headers:
-  - `Cache-Control: no-store`
+  - `Cache-Control: no-store, max-age=0`
   - `Content-Security-Policy: default-src 'none'`
+- HTML/document responses (via `middleware.ts`):
+  - Same baseline headers as above
+  - `Content-Security-Policy` matches PRD §13 page policy (`default-src 'self'`, `script-src` / `style-src` with `'unsafe-inline'`, plus `img-src`, `font-src`, `connect-src`, `object-src`, `base-uri`, `frame-ancestors`, `form-action`). In `development` only, `script-src` also allows `'unsafe-eval'` for Next.js HMR.
 
 ## Environment Variables
 

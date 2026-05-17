@@ -38,7 +38,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function createApiHeaders(requestId: string): Headers {
-  const headers = createSecurityHeaders(true);
+  const headers = createSecurityHeaders("api");
   headers.set("X-Request-Id", requestId);
   return headers;
 }

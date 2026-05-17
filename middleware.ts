@@ -11,7 +11,7 @@ export function middleware(request: NextRequest) {
       : new URL(request.url).pathname;
   const isApiRequest = pathname.startsWith("/api/");
 
-  applySecurityHeaders(response.headers, isApiRequest);
+  applySecurityHeaders(response.headers, isApiRequest ? "api" : "document");
 
   return response;
 }

@@ -15,7 +15,10 @@ import {
   checkRateLimit,
   commitUploadBandwidth,
 } from "@/lib/ratelimit";
-import { createSecurityHeaders } from "@/lib/securityHeaders";
+import {
+  buildDocumentContentSecurityPolicy,
+  createSecurityHeaders,
+} from "@/lib/securityHeaders";
 import { shutdownQueryWorkerPool } from "@/lib/queryWorkerPool";
 
 const DEFAULT_IP = "203.0.113.10";
@@ -709,11 +712,22 @@ describe("Layer 8 - Security headers", () => {
     expect(response.headers.get("cache-control")).toBe("no-store, max-age=0");
     expect(response.headers.get("content-security-policy")).toBe("default-src 'none'");
   });
+
+  it("applies document CSP to non-API routes via middleware", () => {
+    const response = middleware(
+      new Request("http://localhost/") as unknown as Parameters<typeof middleware>[0],
+    );
+
+    expect(response.headers.get("cache-control")).toBeNull();
+    expect(response.headers.get("content-security-policy")).toBe(
+      buildDocumentContentSecurityPolicy(),
+    );
+  });
 });
 
 describe("Default security headers helper", () => {
   it("creates API security headers for route handlers", () => {
-    const headers = createSecurityHeaders(true);
+    const headers = createSecurityHeaders("api");
 
     expect(headers.get("cache-control")).toBe("no-store, max-age=0");
     expect(headers.get("content-security-policy")).toBe("default-src 'none'");
