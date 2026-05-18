@@ -1,5 +1,6 @@
 import type { FormEvent, KeyboardEvent } from "react";
 
+import { CLIENT_LIMITS } from "@/lib/clientLimits";
 import type { InputEncoding } from "@/lib/textEncoding";
 
 interface QueryEditorProps {
@@ -128,6 +129,7 @@ export function QueryEditor({
               Example: <span className="font-mono">SELECT * FROM sales LIMIT 10</span>
             </p>
             <p className="text-xs text-muted">Use Ctrl+Enter or Cmd+Enter to run.</p>
+            <p className="text-xs text-muted">{CLIENT_LIMITS.querySummary}</p>
           </div>
           <div className="flex flex-wrap gap-3">
             {onCopyShareLink ? (

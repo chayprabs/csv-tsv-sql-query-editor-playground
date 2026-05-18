@@ -11,9 +11,20 @@ interface ResultsTableProps {
   onIncludeHeaderChange?: (value: boolean) => void;
   onOutputDelimiterChange?: (value: SupportedDelimiter) => void;
   outputDelimiter?: SupportedDelimiter;
+  returnedRows?: number;
   rowCount: number;
   rows: Record<string, unknown>[];
+  totalRows?: number;
+  truncated?: boolean;
   warning?: string;
+}
+
+function downloadButtonLabel(delimiter: SupportedDelimiter): string {
+  if (delimiter === "\t") {
+    return "Download TSV";
+  }
+
+  return "Download CSV";
 }
 
 function formatCellValue(value: unknown): string {
@@ -37,8 +48,11 @@ export function ResultsTable({
   onIncludeHeaderChange,
   onOutputDelimiterChange,
   outputDelimiter = ",",
+  returnedRows,
   rowCount,
   rows,
+  totalRows,
+  truncated,
   warning,
 }: ResultsTableProps) {
   const hasResults = columns.length > 0 && rows.length > 0;
@@ -68,6 +82,14 @@ export function ResultsTable({
           <p className="mt-2 text-sm text-muted">
             Completed in {executionTimeMs} ms
           </p>
+          {truncated &&
+          totalRows !== undefined &&
+          (returnedRows ?? rowCount) < totalRows ? (
+            <p className="mt-1 text-sm text-amber-900">
+              Showing {(returnedRows ?? rowCount).toLocaleString("en-US")} of{" "}
+              {totalRows.toLocaleString("en-US")} matching rows (server cap applied).
+            </p>
+          ) : null}
         </div>
 
         {hasResults ? (
@@ -114,7 +136,7 @@ export function ResultsTable({
               onClick={onDownload}
               type="button"
             >
-              Download
+              {downloadButtonLabel(outputDelimiter)}
             </button>
           </div>
         ) : null}

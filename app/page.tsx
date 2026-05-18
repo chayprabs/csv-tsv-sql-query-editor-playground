@@ -706,8 +706,11 @@ export default function Home() {
                 onIncludeHeaderChange={setIncludeOutputHeader}
                 onOutputDelimiterChange={setOutputDelimiter}
                 outputDelimiter={outputDelimiter}
+                returnedRows={result.returnedRows}
                 rowCount={result.rowCount}
                 rows={result.rows}
+                totalRows={result.totalRows}
+                truncated={result.truncated}
                 warning={result.warning}
               />
             ) : (

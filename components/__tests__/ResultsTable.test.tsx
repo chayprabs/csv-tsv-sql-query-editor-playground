@@ -99,7 +99,9 @@ describe("ResultsTable", () => {
       }),
     );
 
-    expect(screen.getByRole("button", { name: /^download$/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /download csv/i }),
+    ).toBeInTheDocument();
   });
 
   it("shows a Copy Results button when results exist", () => {

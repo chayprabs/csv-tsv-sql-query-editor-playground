@@ -1,6 +1,7 @@
 import type { ChangeEvent, DragEvent } from "react";
 import { useRef, useState } from "react";
 
+import { CLIENT_LIMITS } from "@/lib/clientLimits";
 import type { DelimiterOption, SupportedDelimiter } from "@/lib/delimiterDetection";
 import type { HeaderMode } from "@/lib/headerMode";
 import type { InferredSqliteType } from "@/lib/typeInference";
@@ -222,7 +223,7 @@ export function FileUploader({
           settings.
         </span>
         <span className="mt-1 text-xs text-muted">
-          Accepted: `.csv`, `.tsv`, `.txt`
+          Accepted: `.csv`, `.tsv`, `.txt`. {CLIENT_LIMITS.uploadSummary}
         </span>
         <input
           accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,application/csv"
