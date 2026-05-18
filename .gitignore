@@ -42,3 +42,6 @@ tmp-*.log
 /test-results/
 /playwright-report/
 /artifacts/playwright/
+
+# Local PRD / product docs (do not publish)
+csv-tsv-sql-query-editor-playground.pdf
