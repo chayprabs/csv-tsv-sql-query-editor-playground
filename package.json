@@ -26,7 +26,8 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:load": "tsx tests/load-test.ts",
-    "test:performance": "tsx tests/load-test.ts"
+    "test:performance": "tsx tests/load-test.ts",
+    "check:licenses": "node scripts/check-production-licenses.cjs"
   },
   "dependencies": {
     "@types/busboy": "^1.5.4",

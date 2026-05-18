@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseShareState } from "@/lib/shareState";
+import { parseShareState, serializeShareState } from "@/lib/shareState";
 
 describe("unit/shareState", () => {
   it("ignores invalid state values while preserving valid query text", () => {
@@ -15,5 +15,20 @@ describe("unit/shareState", () => {
       query: "SELECT 1",
     });
   });
-});
 
+  it("round-trips query and export preferences through the URL hash", () => {
+    const serialized = serializeShareState({
+      includeHeader: false,
+      inputEncoding: "latin1",
+      outputDelimiter: "\t",
+      query: "SELECT * FROM sales LIMIT 5",
+    });
+
+    expect(parseShareState(serialized)).toEqual({
+      includeHeader: false,
+      inputEncoding: "latin1",
+      outputDelimiter: "\t",
+      query: "SELECT * FROM sales LIMIT 5",
+    });
+  });
+});
