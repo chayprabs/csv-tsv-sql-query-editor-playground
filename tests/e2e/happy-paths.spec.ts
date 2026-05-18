@@ -11,6 +11,38 @@ import {
 } from "./helpers";
 
 test.describe("happy paths", () => {
+  test("landing surface shows privacy notice and bundled samples run a join query", async ({
+    page,
+  }) => {
+    const tracker = installPageHealthTracker(page);
+
+    await openHome(page);
+
+    await expect(page.getByRole("note")).toContainText("never stored");
+
+    const waitStudents = page.waitForResponse(
+      (response) =>
+        response.url().includes("/examples/students.csv") && response.ok(),
+    );
+    const waitExams = page.waitForResponse(
+      (response) =>
+        response.url().includes("/examples/exams.csv") && response.ok(),
+    );
+
+    await page.getByRole("button", { name: /load sample files/i }).click();
+
+    await Promise.all([waitStudents, waitExams]);
+
+    await expect(page.getByText("students.csv")).toBeVisible();
+    await expect(page.getByText("exams.csv")).toBeVisible();
+
+    await runQuery(page);
+    await expectRowCount(page, 5);
+
+    await takeNamedScreenshot(page, "happy-sample-join");
+    await expectHealthyPage(tracker);
+  });
+
   test("first-day analyst can upload a file, run a query, and download results", async ({
     page,
   }) => {

@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { expect, type Locator, type Page } from "@playwright/test";
@@ -12,6 +12,24 @@ export interface PageHealthTracker {
 
 export function fixturePath(filename: string): string {
   return generatedFixturePath(filename);
+}
+
+function mimeTypeForFixtureFilename(filename: string): string {
+  const lower = filename.toLowerCase();
+
+  if (lower.endsWith(".tsv")) {
+    return "text/tab-separated-values";
+  }
+
+  if (lower.endsWith(".csv")) {
+    return "text/csv";
+  }
+
+  if (lower.endsWith(".txt")) {
+    return "text/plain";
+  }
+
+  return "text/plain";
 }
 
 export function installPageHealthTracker(page: Page): PageHealthTracker {
@@ -66,9 +84,15 @@ export async function openHome(page: Page): Promise<void> {
 }
 
 export async function uploadFiles(page: Page, filenames: string[]): Promise<void> {
-  await page.locator('input[type="file"]').setInputFiles(
-    filenames.map((filename) => fixturePath(filename)),
+  const payloads = await Promise.all(
+    filenames.map(async (filename) => ({
+      buffer: await readFile(fixturePath(filename)),
+      mimeType: mimeTypeForFixtureFilename(filename),
+      name: filename,
+    })),
   );
+
+  await page.locator('input[type="file"]').setInputFiles(payloads);
 }
 
 export async function fillQuery(page: Page, query: string): Promise<void> {
