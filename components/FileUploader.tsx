@@ -1,4 +1,5 @@
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, DragEvent } from "react";
+import { useRef, useState } from "react";
 
 import type { DelimiterOption, SupportedDelimiter } from "@/lib/delimiterDetection";
 import type { HeaderMode } from "@/lib/headerMode";
@@ -44,6 +45,44 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function isAllowedUploadFile(file: File): boolean {
+  const lower = file.name.toLowerCase();
+
+  if (
+    lower.endsWith(".csv") ||
+    lower.endsWith(".tsv") ||
+    lower.endsWith(".txt")
+  ) {
+    return true;
+  }
+
+  const mime = file.type.toLowerCase();
+
+  if (!mime) {
+    return false;
+  }
+
+  if (mime.startsWith("text/")) {
+    return true;
+  }
+
+  return mime === "application/csv" || mime === "application/vnd.ms-excel";
+}
+
+function buildFileListFromFiles(files: File[]): FileList | null {
+  if (files.length === 0) {
+    return null;
+  }
+
+  const dataTransfer = new DataTransfer();
+
+  for (const file of files) {
+    dataTransfer.items.add(file);
+  }
+
+  return dataTransfer.files;
+}
+
 function formatDelimiterLabel(delimiter: SupportedDelimiter): string {
   if (delimiter === "\t") {
     return "tab";
@@ -66,8 +105,54 @@ export function FileUploader({
   onFilesSelected,
   onHeaderModeChange,
 }: FileUploaderProps) {
+  const dragDepthRef = useRef(0);
+  const [dropActive, setDropActive] = useState(false);
+
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     onFilesSelected(event.target.files);
+  }
+
+  function handleDragEnter(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    dragDepthRef.current += 1;
+    setDropActive(true);
+  }
+
+  function handleDragLeave(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    dragDepthRef.current -= 1;
+
+    if (dragDepthRef.current <= 0) {
+      dragDepthRef.current = 0;
+      setDropActive(false);
+    }
+  }
+
+  function handleDragOver(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  function handleDrop(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    dragDepthRef.current = 0;
+    setDropActive(false);
+
+    if (isLoading) {
+      return;
+    }
+
+    const incoming = event.dataTransfer?.files;
+
+    if (!incoming?.length) {
+      return;
+    }
+
+    const allowed = Array.from(incoming).filter(isAllowedUploadFile);
+    onFilesSelected(buildFileListFromFiles(allowed));
   }
 
   return (
@@ -98,12 +183,23 @@ export function FileUploader({
         ) : null}
       </div>
 
-      <label className="mt-6 flex cursor-pointer flex-col items-center justify-center rounded-[1.6rem] border border-dashed border-accent/40 bg-accent/5 px-6 py-10 text-center transition hover:border-accent hover:bg-accent/10">
+      <label
+        className={`mt-6 flex cursor-pointer flex-col items-center justify-center rounded-[1.6rem] border border-dashed px-6 py-10 text-center transition hover:border-accent hover:bg-accent/10 ${
+          dropActive
+            ? "border-accent bg-accent/15 shadow-inner"
+            : "border-accent/40 bg-accent/5"
+        }`}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         <span className="rounded-full bg-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white">
           Choose Files
         </span>
         <span className="mt-4 text-sm font-medium text-ink">
-          Supports multiple files. Each upload keeps its own parse settings.
+          Drag and drop files here, or click to choose. Multiple files keep separate parse
+          settings.
         </span>
         <span className="mt-1 text-xs text-muted">
           Accepted: `.csv`, `.tsv`, `.txt`
