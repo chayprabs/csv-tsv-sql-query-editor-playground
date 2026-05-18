@@ -6,14 +6,27 @@ function stringifyCellValue(value: unknown): string {
   return typeof value === "object" ? JSON.stringify(value) : String(value);
 }
 
+/** Prefix cells that could execute as formulas when opened in Excel/Sheets. */
+export function sanitizeSpreadsheetFormulaCell(raw: string): string {
+  if (/^[=+\-@]/.test(raw)) {
+    return `\t${raw}`;
+  }
+
+  return raw;
+}
+
 export function escapeDelimitedCell(
   value: unknown,
   delimiter = ",",
 ): string {
-  const raw = stringifyCellValue(value);
+  const raw = sanitizeSpreadsheetFormulaCell(stringifyCellValue(value));
   const escapedDelimiter = delimiter.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  if (new RegExp(`[\"\\n\\r${delimiter === "\t" ? "\\t" : escapedDelimiter}]`).test(raw)) {
+  if (
+    new RegExp(`[\"\\n\\r\\t${delimiter === "\t" ? "" : escapedDelimiter}]`).test(
+      raw,
+    )
+  ) {
     return `"${raw.replace(/"/g, '""')}"`;
   }
 
