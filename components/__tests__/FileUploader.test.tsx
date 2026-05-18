@@ -9,6 +9,19 @@ import {
   type FilePreview,
 } from "@/components/FileUploader";
 
+function createSyntheticFileList(files: File[]): FileList {
+  return {
+    ...files,
+    length: files.length,
+    item: (index: number) => files[index] ?? null,
+    *[Symbol.iterator]() {
+      for (const file of files) {
+        yield file;
+      }
+    },
+  } as unknown as FileList;
+}
+
 function buildPreview(file: File, index: number): FilePreview {
   const tableName =
     file.name.replace(/\.[^/.]+$/, "").replace(/[^a-z0-9]+/gi, "_").toLowerCase() ||
@@ -55,6 +68,62 @@ function FileUploaderHarness() {
 }
 
 describe("FileUploader", () => {
+  it("calls onFilesSelected when CSV files are dropped on the dropzone", () => {
+    const onFilesSelected = vi.fn();
+
+    render(
+      createElement(FileUploader, {
+        files: [],
+        headerNotice: null,
+        isLoading: false,
+        onClear: vi.fn(),
+        onDelimiterChange: vi.fn(),
+        onFilesSelected,
+        onHeaderModeChange: vi.fn(),
+      }),
+    );
+
+    const dropTarget = screen.getByText(/drag and drop files here/i).closest("label");
+
+    expect(dropTarget).toBeTruthy();
+
+    const csvFile = new File(["h\n1"], "drop.csv", { type: "text/csv" });
+
+    fireEvent.drop(dropTarget!, {
+      dataTransfer: {
+        files: createSyntheticFileList([csvFile]),
+      } as unknown as DataTransfer,
+    });
+
+    expect(onFilesSelected).toHaveBeenCalledTimes(1);
+
+    const list = onFilesSelected.mock.calls[0][0] as FileList | null;
+
+    expect(list?.length).toBe(1);
+    expect(list?.item(0)?.name).toBe("drop.csv");
+  });
+
+  it("invokes onLoadSamples when the sample button is clicked", () => {
+    const onLoadSamples = vi.fn();
+
+    render(
+      createElement(FileUploader, {
+        files: [],
+        headerNotice: null,
+        isLoading: false,
+        onClear: vi.fn(),
+        onDelimiterChange: vi.fn(),
+        onFilesSelected: vi.fn(),
+        onHeaderModeChange: vi.fn(),
+        onLoadSamples,
+      }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /load sample files/i }));
+
+    expect(onLoadSamples).toHaveBeenCalledTimes(1);
+  });
+
   it("renders a file input", () => {
     render(
       createElement(FileUploader, {

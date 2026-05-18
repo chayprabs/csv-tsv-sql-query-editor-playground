@@ -31,6 +31,8 @@ interface FileUploaderProps {
   onDelimiterChange: (tableName: string, delimiter: DelimiterOption) => void;
   onFilesSelected: (files: FileList | null) => void;
   onHeaderModeChange: (tableName: string, headerMode: HeaderMode) => void;
+  onLoadSamples?: () => void;
+  samplesLoading?: boolean;
 }
 
 function formatBytes(bytes: number): string {
@@ -74,13 +76,29 @@ function buildFileListFromFiles(files: File[]): FileList | null {
     return null;
   }
 
-  const dataTransfer = new DataTransfer();
+  if (typeof DataTransfer !== "undefined") {
+    const dataTransfer = new DataTransfer();
 
-  for (const file of files) {
-    dataTransfer.items.add(file);
+    for (const file of files) {
+      dataTransfer.items.add(file);
+    }
+
+    return dataTransfer.files;
   }
 
-  return dataTransfer.files;
+  const arrayLike = [...files];
+
+  return Object.assign(arrayLike, {
+    length: files.length,
+    item(index: number): File | null {
+      return files[index] ?? null;
+    },
+    *[Symbol.iterator]() {
+      for (const file of files) {
+        yield file;
+      }
+    },
+  }) as unknown as FileList;
 }
 
 function formatDelimiterLabel(delimiter: SupportedDelimiter): string {
@@ -104,6 +122,8 @@ export function FileUploader({
   onDelimiterChange,
   onFilesSelected,
   onHeaderModeChange,
+  onLoadSamples,
+  samplesLoading = false,
 }: FileUploaderProps) {
   const dragDepthRef = useRef(0);
   const [dropActive, setDropActive] = useState(false);
@@ -214,6 +234,19 @@ export function FileUploader({
           type="file"
         />
       </label>
+
+      {onLoadSamples ? (
+        <div className="mt-4 flex flex-wrap justify-center gap-3">
+          <button
+            className="rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isLoading || samplesLoading}
+            onClick={onLoadSamples}
+            type="button"
+          >
+            {samplesLoading ? "Loading samples…" : "Load sample files"}
+          </button>
+        </div>
+      ) : null}
 
       {headerNotice ? (
         <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">

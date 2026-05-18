@@ -12,7 +12,7 @@ export function ErrorDisplay({ message }: ErrorDisplayProps) {
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-700">
         Query Error
       </p>
-      <p className="mt-2 text-sm leading-6 text-red-900">{message}</p>
+      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-red-900">{message}</p>
     </section>
   );
 }

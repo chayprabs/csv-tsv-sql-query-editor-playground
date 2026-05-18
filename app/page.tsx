@@ -24,6 +24,7 @@ import {
   parseStoredQueryHistory,
   serializeQueryHistory,
 } from "@/lib/queryHistory";
+import { readQueryApiResponse } from "@/lib/readQueryApiResponse";
 import { parseShareState, serializeShareState } from "@/lib/shareState";
 import { deriveTableName } from "@/lib/tableNaming";
 import {
@@ -34,6 +35,11 @@ import {
 const DEFAULT_INPUT_ENCODING: InputEncoding = "utf-8";
 const DEFAULT_OUTPUT_DELIMITER: SupportedDelimiter = ",";
 const QUERY_HISTORY_STORAGE_KEY = "flatfile-sql-studio.query-history";
+
+const SAMPLE_FILES = [
+  { filename: "students.csv", path: "/examples/students.csv" },
+  { filename: "exams.csv", path: "/examples/exams.csv" },
+] as const;
 
 type QueryResponse = ServerQueryResponse;
 
@@ -61,14 +67,28 @@ function buildStarterQuery(files: FilePreview[]): string {
   ].join("\n");
 }
 
-function formatServerError(payload: Pick<QueryResponse, "error" | "requestId">): string {
+function formatServerError(
+  payload: Pick<QueryResponse, "error" | "requestId">,
+  httpStatus: number,
+): string {
   if (!payload.error) {
     return "Unexpected query error.";
   }
 
-  return payload.requestId
+  const base = payload.requestId
     ? `${payload.error} Request ID: ${payload.requestId}`
     : payload.error;
+
+  const hints: Partial<Record<number, string>> = {
+    408: "Tip: simplify the query, add LIMIT, or reduce expensive joins.",
+    413: "Tip: upload fewer or smaller files.",
+    429: "Tip: wait for the rate limit window to reset.",
+    503: "Tip: wait a moment and try again.",
+  };
+
+  const hint = hints[httpStatus];
+
+  return hint ? `${base}\n\n${hint}` : base;
 }
 
 function formatHeaderNotice(files: FilePreview[]): string | null {
@@ -227,6 +247,7 @@ export default function Home() {
   const [queryHistory, setQueryHistory] = useState<string[]>([]);
   const [inputResetKey, setInputResetKey] = useState(0);
   const [hasLoadedShareState, setHasLoadedShareState] = useState(false);
+  const [samplesLoading, setSamplesLoading] = useState(false);
   const decodedFileCacheRef = useRef(new Map<string, string>());
   const submitLockRef = useRef(false);
 
@@ -335,7 +356,7 @@ export default function Home() {
         setHeaderNotice(null);
         setErrorMessage(
           error instanceof Error
-            ? error.message
+            ? `Could not decode files using "${inputEncoding}" encoding. Try another encoding from the dropdown, or confirm each file is plain text. (${error.message})`
             : "Unexpected client error while reading the selected files.",
         );
       }
@@ -414,6 +435,66 @@ export default function Home() {
     setResult(null);
   }
 
+  async function handleLoadSamples() {
+    setSamplesLoading(true);
+    setNoticeMessage(null);
+    setErrorMessage(null);
+
+    try {
+      const takenTableNames = new Set<string>();
+      const loaded: UploadedFileState[] = [];
+
+      for (const sample of SAMPLE_FILES) {
+        const response = await fetch(sample.path);
+
+        if (!response.ok) {
+          throw new Error(
+            `Could not load sample "${sample.filename}" (HTTP ${response.status}).`,
+          );
+        }
+
+        const blob = await response.blob();
+        const file = new File([blob], sample.filename, { type: "text/csv" });
+
+        loaded.push({
+          ...DEFAULT_FILE_PARSE_OPTIONS,
+          file,
+          tableName: deriveTableName(sample.filename, takenTableNames),
+        });
+      }
+
+      decodedFileCacheRef.current.clear();
+      setInputResetKey((key) => key + 1);
+
+      const studentsTable = loaded[0]?.tableName;
+      const examsTable = loaded[1]?.tableName;
+
+      setUploadedFiles(loaded);
+
+      if (studentsTable && examsTable) {
+        setQuery(
+          [
+            "SELECT s.name, e.subject, e.score",
+            `FROM ${studentsTable} s`,
+            `JOIN ${examsTable} e ON s.student_id = e.student_id`,
+            "ORDER BY e.score DESC",
+            "LIMIT 20",
+          ].join("\n"),
+        );
+      }
+
+      resetDerivedResults();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Could not load sample files. Upload your own CSV files instead.",
+      );
+    } finally {
+      setSamplesLoading(false);
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -422,7 +503,9 @@ export default function Home() {
     }
 
     if (uploadedFiles.length === 0) {
-      setNoticeMessage("Upload at least one CSV or TSV file to get started.");
+      setNoticeMessage(
+        "Upload at least one CSV, TSV, or plain-text (.txt) file to get started.",
+      );
       setErrorMessage(null);
       return;
     }
@@ -463,11 +546,11 @@ export default function Home() {
         method: "POST",
       });
 
-      const payload = (await response.json()) as QueryResponse;
+      const payload = await readQueryApiResponse(response);
 
       if (!response.ok || payload.error) {
         setResult(null);
-        setErrorMessage(formatServerError(payload));
+        setErrorMessage(formatServerError(payload, response.status));
         return;
       }
 
@@ -475,10 +558,16 @@ export default function Home() {
       persistQueryHistory(query);
     } catch (error) {
       setResult(null);
+      const messageLooksLikeNetworkFailure =
+        error instanceof TypeError &&
+        /fetch|network|failed to fetch/i.test(String(error.message));
+
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Unexpected client error while running the query.",
+        messageLooksLikeNetworkFailure
+          ? "Network error: check your connection and that the server is running."
+          : error instanceof Error
+            ? error.message
+            : "Unexpected client error while running the query.",
       );
     } finally {
       submitLockRef.current = false;
@@ -558,6 +647,14 @@ export default function Home() {
               database on the server; files are not written to disk.
             </p>
           </div>
+
+          <p
+            className="mt-6 rounded-2xl border border-accent/25 bg-white/70 px-4 py-3 text-sm leading-relaxed text-ink shadow-sm md:text-[15px]"
+            role="note"
+          >
+            Your files are never stored. Each query runs against an in-memory database that
+            is destroyed when the request ends.
+          </p>
         </section>
 
         <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
@@ -571,6 +668,8 @@ export default function Home() {
               onDelimiterChange={handleFileDelimiterChange}
               onFilesSelected={handleFilesSelected}
               onHeaderModeChange={handleFileHeaderModeChange}
+              onLoadSamples={handleLoadSamples}
+              samplesLoading={samplesLoading}
             />
 
             <QueryEditor
