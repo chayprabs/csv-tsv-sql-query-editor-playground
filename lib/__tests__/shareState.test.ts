@@ -3,15 +3,21 @@ import { describe, expect, it } from "vitest";
 import { parseShareState, serializeShareState } from "@/lib/shareState";
 
 describe("shareState", () => {
-  it("serializes all supported query state fields into a hash payload", () => {
-    expect(
-      serializeShareState({
-        includeHeader: false,
-        inputEncoding: "latin1",
-        outputDelimiter: "\t",
-        query: "SELECT * FROM basic",
-      }),
-    ).toContain("query=SELECT+*+FROM+basic");
+  it("serializes all supported query state fields into a URL-safe base64 payload", () => {
+    const serialized = serializeShareState({
+      includeHeader: false,
+      inputEncoding: "latin1",
+      outputDelimiter: "\t",
+      query: "SELECT * FROM basic",
+    });
+
+    expect(serialized).not.toContain("query=");
+    expect(parseShareState(serialized)).toEqual({
+      includeHeader: false,
+      inputEncoding: "latin1",
+      outputDelimiter: "\t",
+      query: "SELECT * FROM basic",
+    });
   });
 
   it("parses a hash payload back into structured state", () => {

@@ -504,7 +504,7 @@ export default function Home() {
 
     if (uploadedFiles.length === 0) {
       setNoticeMessage(
-        "Upload at least one CSV, TSV, or plain-text (.txt) file to get started.",
+        "Upload at least one CSV or TSV file to get started.",
       );
       setErrorMessage(null);
       return;

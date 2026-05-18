@@ -26,7 +26,9 @@ export default defineConfig({
     exclude: ["tests/e2e/**"],
     fileParallelism: false,
     hookTimeout: 120_000,
-    pool: "threads",
+    // Fork pool on CI: route tests spawn node:worker_threads (queryWorkerPool), which is
+    // unreliable inside Vitest's default thread pool on Linux GitHub Actions.
+    pool: process.env.CI === "true" ? "forks" : "threads",
     setupFiles: ["./vitest.setup.ts"],
     testTimeout: 60_000,
     coverage: {

@@ -234,6 +234,13 @@ export async function POST(request: Request): Promise<NextResponse> {
       throw new ClientError(413, "Total upload size is too large");
     }
 
+    if (
+      contentLength !== undefined &&
+      contentLength > runtimeConfig.maxUploadBytes
+    ) {
+      throw new ClientError(413, "File too large");
+    }
+
     const requestRate = await checkRateLimit(clientIp);
 
     if (!requestRate.allowed) {

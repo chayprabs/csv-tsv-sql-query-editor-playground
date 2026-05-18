@@ -37,6 +37,7 @@ const ENV_OVERRIDES = {
 
 let server: ChildProcessWithoutNullStreams | null = null;
 const previousEnv = new Map<string, string | undefined>();
+let liveRequestSequence = 0;
 
 function fixtureFile(
   filename: string,
@@ -74,8 +75,14 @@ function buildFormData(options: {
 }
 
 async function postFormData(formData: FormData): Promise<Response> {
+  liveRequestSequence += 1;
+
   return fetch(`${BASE_URL}/api/query`, {
     body: formData,
+    headers: {
+      // Isolate in-memory rate limits across live-server integration cases.
+      "x-forwarded-for": `203.0.113.${liveRequestSequence % 200}`,
+    },
     method: "POST",
   });
 }

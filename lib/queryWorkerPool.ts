@@ -46,6 +46,7 @@ function createWorker(): Worker {
     path.join(process.cwd(), "lib", "queryWorker.ts"),
   );
   const worker = new Worker(workerPath, {
+    // Package name only — require.resolve("tsx") pulls esbuild into the Next.js bundle.
     execArgv: ["--import", "tsx"],
     workerData: createQueryWorkerPayload(),
   });

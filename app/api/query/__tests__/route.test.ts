@@ -125,7 +125,7 @@ describe("POST /api/query", () => {
     const payload = await readJson(response);
 
     expect(response.status).toBe(413);
-    expect(payload.error).toBe("File too large");
+    expect(payload.error).toBe("Total upload size is too large");
   });
 
   it("rejects non-CSV uploads with a clear 400 error", async () => {

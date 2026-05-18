@@ -18,10 +18,10 @@ test.describe("share link", () => {
 
     await page.getByLabel("Input encoding").selectOption("latin1");
 
-    await page.waitForFunction(() => window.location.hash.includes("query="));
+    await page.waitForFunction(() => window.location.hash.length > 1);
 
     const sharedUrl = page.url();
-    expect(sharedUrl).toContain("query=");
+    expect(sharedUrl).toMatch(/#[A-Za-z0-9_-]+/);
 
     const freshPage = await context.newPage();
     const freshTracker = installPageHealthTracker(freshPage);
@@ -29,7 +29,7 @@ test.describe("share link", () => {
     await freshPage.goto(sharedUrl);
     await expect(freshPage.getByRole("textbox")).toHaveValue("SELECT 1 AS one");
     await expect(freshPage.getByLabel("Input encoding")).toHaveValue("latin1");
-    expect(freshPage.url()).toContain("inputEncoding=latin1");
+    await expect(freshPage.getByLabel("Input encoding")).toHaveValue("latin1");
 
     await expectHealthyPage(tracker);
     await expectHealthyPage(freshTracker);

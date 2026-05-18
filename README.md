@@ -135,7 +135,7 @@ Other extensions and disallowed MIME types are rejected. Content is **sniffed** 
 | Concern | Default | Config (see `env.example`) |
 | --- | --- | --- |
 | Per-file upload | **50 MB** | `MAX_UPLOAD_BYTES`, aliases |
-| Total upload (all files) | **100 MB** | `MAX_TOTAL_UPLOAD_BYTES`, aliases |
+| Total upload (all files) | **50 MB** | `MAX_TOTAL_UPLOAD_BYTES`, aliases |
 | Max files | **20** | `MAX_FILE_COUNT` |
 | Max result rows | **50,000** | `MAX_RESULT_ROWS` |
 | JSON response budget | **~50 MB** | Engine-enforced |
@@ -147,8 +147,6 @@ Other extensions and disallowed MIME types are rejected. Content is **sniffed** 
 | Global concurrent | **20** | `RATE_LIMIT_MAX_CONCURRENT_GLOBAL` |
 
 Production deployments with **multiple instances** should set **Upstash Redis** (`UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`) so rate limits stay consistent.
-
-_Some older PRD drafts listed **50 MB** as both per-file and total upload ceilings. This codebase defaults to **100 MB combined** per request via `MAX_TOTAL_UPLOAD_BYTES` / `FLATFILE_SQL_STUDIO_MAX_TOTAL_UPLOAD_BYTES`; adjust in `env.example` if you need stricter totals._
 
 ---
 
