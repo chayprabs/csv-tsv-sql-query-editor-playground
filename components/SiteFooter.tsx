@@ -17,6 +17,9 @@ export function SiteFooter() {
           <Link className="underline decoration-accent/60 underline-offset-4 hover:text-accent" href="/terms">
             Terms
           </Link>
+          <Link className="underline decoration-accent/60 underline-offset-4 hover:text-accent" href="/terms#terms-of-use">
+            Terms of Use
+          </Link>
           <Link className="underline decoration-accent/60 underline-offset-4 hover:text-accent" href="/credits">
             Credits
           </Link>

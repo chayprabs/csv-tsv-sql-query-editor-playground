@@ -148,6 +148,8 @@ Other extensions and disallowed MIME types are rejected. Content is **sniffed** 
 
 Production deployments with **multiple instances** should set **Upstash Redis** (`UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`) so rate limits stay consistent.
 
+_Some older PRD drafts listed **50 MB** as both per-file and total upload ceilings. This codebase defaults to **100 MB combined** per request via `MAX_TOTAL_UPLOAD_BYTES` / `FLATFILE_SQL_STUDIO_MAX_TOTAL_UPLOAD_BYTES`; adjust in `env.example` if you need stricter totals._
+
 ---
 
 ## npm scripts

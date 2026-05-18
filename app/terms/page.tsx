@@ -17,6 +17,24 @@ export default function TermsPage() {
         </p>
         <h1 className="text-3xl font-semibold text-ink">Terms of Service</h1>
 
+        <section className="scroll-mt-24" id="terms-of-use">
+          <h2 className="text-xl font-semibold text-ink">Terms of Use</h2>
+          <p className="mt-2">
+            These Terms of Use apply to anyone who accesses Quarry (Flatfile SQL Studio). They work
+            together with the sections below on acceptable use, privacy-related expectations, and
+            liability limits.
+          </p>
+        </section>
+
+        <section className="scroll-mt-24" id="disclaimer">
+          <h2 className="text-xl font-semibold text-ink">Disclaimer</h2>
+          <p className="mt-2">
+            Quarry is provided for general productivity only. Nothing on this site is legal,
+            financial, medical, or other professional advice. Use your own judgment and verify
+            outputs before relying on them.
+          </p>
+        </section>
+
         <section>
           <h2 className="text-xl font-semibold text-ink">Use at your own risk</h2>
           <p className="mt-2">
