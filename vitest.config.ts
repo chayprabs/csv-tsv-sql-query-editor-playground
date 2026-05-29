@@ -26,7 +26,7 @@ export default defineConfig({
     exclude: ["tests/e2e/**"],
     fileParallelism: false,
     hookTimeout: 120_000,
-    // Worker-thread query tests run inline when VITEST is set (see queryWorkerPool.ts).
+    // Query worker pool runs inline when VITEST is set (see lib/queryWorkerPool.ts).
     pool: "threads",
     setupFiles: ["./vitest.setup.ts"],
     testTimeout: 60_000,

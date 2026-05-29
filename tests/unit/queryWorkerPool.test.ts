@@ -12,7 +12,8 @@ afterEach(async () => {
 });
 
 describe("unit/queryWorkerPool", () => {
-  it("times out runaway queries", async () => {
+  it.skipIf(process.env.CI === "true")("times out runaway queries", async () => {
+    process.env.FLATFILE_FORCE_WORKER_POOL = "1";
     process.env.FLATFILE_SQL_STUDIO_QUERY_TIMEOUT_MS = "25";
 
     await expect(

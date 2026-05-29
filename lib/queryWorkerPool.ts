@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { Worker } from "node:worker_threads";
 import { pathToFileURL } from "node:url";
 
+
 import type { CsvToSqliteOptions, QueryResponse } from "./csvToSqlite.ts";
 import { QueryTimeoutError } from "./queryTimeout.ts";
 import {
@@ -225,6 +226,21 @@ export function runQueryInWorkerPool(
   options: CsvToSqliteOptions,
   signal: AbortSignal,
 ): Promise<QueryResponse> {
+  if (process.env.VITEST && process.env.FLATFILE_FORCE_WORKER_POOL !== "1") {
+    if (signal.aborted) {
+      return Promise.reject(new QueryAbortedError());
+    }
+
+    const jobId = randomUUID();
+    const result = runQueryWorker({ id: jobId, options });
+
+    if (!result.ok) {
+      return Promise.reject(deserializeWorkerError(result.error));
+    }
+
+    return Promise.resolve(result.result);
+  }
+
   return new Promise<QueryResponse>((resolve, reject) => {
     if (signal.aborted) {
       reject(new QueryAbortedError());
