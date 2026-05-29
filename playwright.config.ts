@@ -22,6 +22,7 @@ export default defineConfig({
         ? "npm run start -- --hostname 127.0.0.1 --port 3000"
         : "npm run dev -- --hostname 127.0.0.1 --port 3000",
     env: {
+      FLATFILE_INLINE_QUERY_WORKER: "1",
       MAX_HEAP_MB: "2048",
       RATE_LIMIT_BANDWIDTH_MB_PER_HOUR: "4096",
       RATE_LIMIT_MAX_CONCURRENT_GLOBAL: "100",

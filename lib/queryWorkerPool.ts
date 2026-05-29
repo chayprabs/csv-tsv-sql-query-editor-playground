@@ -226,7 +226,11 @@ export function runQueryInWorkerPool(
   options: CsvToSqliteOptions,
   signal: AbortSignal,
 ): Promise<QueryResponse> {
-  if (process.env.VITEST && process.env.FLATFILE_FORCE_WORKER_POOL !== "1") {
+  const useInlineWorker =
+    process.env.FLATFILE_INLINE_QUERY_WORKER === "1" ||
+    (process.env.VITEST && process.env.FLATFILE_FORCE_WORKER_POOL !== "1");
+
+  if (useInlineWorker) {
     if (signal.aborted) {
       return Promise.reject(new QueryAbortedError());
     }
