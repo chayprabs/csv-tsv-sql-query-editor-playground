@@ -8,9 +8,13 @@ export function ErrorDisplay({ message }: ErrorDisplayProps) {
   }
 
   return (
-    <section className="rounded-3xl border border-red-300 bg-red-50/90 p-5 shadow-panel">
-      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-700">
-        Query Error
+    <section
+      aria-live="assertive"
+      className="rounded-xl border border-red-200 bg-red-50 p-4"
+      role="alert"
+    >
+      <p className="text-xs font-medium uppercase tracking-wide text-red-700">
+        Query error
       </p>
       <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-red-900">{message}</p>
     </section>

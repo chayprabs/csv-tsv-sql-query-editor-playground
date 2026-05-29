@@ -65,7 +65,7 @@ export default function PrivacyPage() {
         <h2 className="text-xl font-semibold text-ink">Contact</h2>
         <p>
           For questions about this privacy notice, contact{" "}
-          <a href="mailto:privacy@authos.app">privacy@authos.app</a>.
+          <a href="mailto:hello@chaitanyaprabuddha.com">hello@chaitanyaprabuddha.com</a>.
         </p>
         <p className="text-sm text-muted">Last updated: May 17, 2026</p>
       </article>

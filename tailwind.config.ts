@@ -9,16 +9,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        canvas: "#f6f1e7",
-        panel: "#fffaf1",
-        ink: "#17110e",
-        accent: "#c55d2d",
-        accentSoft: "#f2d6bf",
-        line: "#d9ccb8",
-        muted: "#6a5f55",
+        canvas: "#fafafa",
+        panel: "#ffffff",
+        ink: "#171717",
+        accent: "#2563eb",
+        accentSoft: "#eff6ff",
+        line: "#e5e5e5",
+        muted: "#737373",
       },
       boxShadow: {
-        panel: "0 18px 45px rgba(30, 19, 11, 0.08)",
+        panel: "0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)",
       },
       fontFamily: {
         sans: ["var(--font-sans)"],

@@ -714,22 +714,22 @@ export default function Home() {
                 warning={result.warning}
               />
             ) : (
-              <section className="rounded-[2rem] border border-line/90 bg-panel/95 p-6 shadow-panel">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+              <section className="rounded-xl border border-line bg-panel p-6 shadow-panel">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted">
                   Results
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold text-ink">
+                <h2 className="mt-2 text-xl font-semibold text-ink">
                   Ready for the first query
                 </h2>
-                <p className="mt-4 text-sm leading-6 text-muted">
-                  Upload at least one file, review each file&apos;s delimiter and
-                  header settings, and run a query to see the result table here.
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  Upload at least one file, review delimiter and header settings, then
+                  run a query to see results here.
                 </p>
               </section>
             )}
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }

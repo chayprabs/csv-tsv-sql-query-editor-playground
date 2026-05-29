@@ -12,14 +12,11 @@ html {
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(197, 93, 45, 0.12), transparent 34%),
-    radial-gradient(circle at top right, rgba(92, 125, 102, 0.14), transparent 28%),
-    linear-gradient(180deg, #f8f2e8 0%, #f2eadc 100%);
-  color: #17110e;
-  font-family: var(--font-sans), sans-serif;
+  background: #fafafa;
+  color: #171717;
+  font-family: var(--font-sans), system-ui, sans-serif;
 }
 
 ::selection {
-  background: rgba(197, 93, 45, 0.2);
+  background: rgba(23, 23, 23, 0.12);
 }

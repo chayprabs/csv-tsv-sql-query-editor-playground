@@ -250,7 +250,7 @@ Safe SQLite identifiers are derived from **filenames** (normalized, deduplicated
 
 Paste these into **Repository → About → Topics** for discoverability:
 
-`csv` `tsv` `txt` `sql` `sqlite` `sqlite3` `better-sqlite3` `flatfile` `data-analysis` `analytics` `business-intelligence` `nextjs` `nextjs14` `app-router` `typescript` `react` `tailwindcss` `papaparse` `server-side` `nodejs` `privacy` `open-source` `sql-query-builder` `csv-to-sql` `join-csv` `etl` `developer-tools` `quarry` `authos`
+`csv` `tsv` `txt` `sql` `sqlite` `sqlite3` `better-sqlite3` `flatfile` `data-analysis` `analytics` `business-intelligence` `nextjs` `nextjs14` `app-router` `typescript` `react` `tailwindcss` `papaparse` `server-side` `nodejs` `privacy` `open-source` `sql-query-builder` `csv-to-sql` `join-csv` `etl` `developer-tools` `quarry`
 
 ---
 

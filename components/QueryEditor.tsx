@@ -40,18 +40,10 @@ export function QueryEditor({
   }
 
   return (
-    <section className="rounded-[2rem] border border-line/90 bg-panel/95 p-6 shadow-panel">
+    <section className="rounded-xl border border-line bg-panel p-6 shadow-panel">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-          Query
-        </p>
-        <h2 className="mt-2 text-2xl font-semibold text-ink">
-          Run SQLite against the uploaded tables
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-          The query executes server-side in an in-memory SQLite database and
-          returns JSON results to the page.
-        </p>
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">Query</p>
+        <h2 className="mt-1 text-lg font-semibold text-ink">SQL editor</h2>
       </div>
 
       <form className="mt-6 space-y-5" onSubmit={onSubmit}>

@@ -180,15 +180,14 @@ export function FileUploader({
     <section className="rounded-[2rem] border border-line/90 bg-panel/95 p-6 shadow-panel">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-            Upload Sources
+          <p className="text-xs font-medium uppercase tracking-wide text-muted">
+            Upload
           </p>
-          <h2 className="mt-2 text-2xl font-semibold text-ink">
-            Drop in one or more CSV, TSV, or text files
+          <h2 className="mt-1 text-lg font-semibold text-ink">
+            CSV, TSV, or text files
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-            Each upload becomes a SQLite table named after its filename without
-            the extension. Delimiter and header handling can be adjusted per file.
+          <p className="mt-1 text-sm text-muted">
+            Each file becomes a SQLite table. Adjust delimiter and headers per file.
           </p>
         </div>
 

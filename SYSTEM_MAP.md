@@ -2,7 +2,7 @@
 
 ## Scope
 
-This map reflects the authored application code in `C:\Users\chait\authos\t3\q-web` as inspected on 2026-04-06. Generated artifacts such as `node_modules`, `.next`, and `coverage` were excluded from behavioral mapping.
+This map reflects the authored application code in this repository as of 2026-05-29. Generated artifacts such as `node_modules`, `.next`, and `coverage` were excluded from behavioral mapping.
 
 ## Product Summary
 
@@ -10,38 +10,38 @@ Flatfile SQL Studio is a Next.js App Router application that lets users upload o
 
 ## High-Level Architecture
 
-- Client entrypoint: [`app/page.tsx`](C:\Users\chait\authos\t3\q-web\app\page.tsx)
-- API route: [`app/api/query/route.ts`](C:\Users\chait\authos\t3\q-web\app\api\query\route.ts)
+- Client entrypoint: [`app/page.tsx`](app/page.tsx)
+- API route: [`app/api/query/route.ts`](app/api/query/route.ts)
 - UI components:
-  - [`components/FileUploader.tsx`](C:\Users\chait\authos\t3\q-web\components\FileUploader.tsx)
-  - [`components/QueryEditor.tsx`](C:\Users\chait\authos\t3\q-web\components\QueryEditor.tsx)
-  - [`components/ResultsTable.tsx`](C:\Users\chait\authos\t3\q-web\components\ResultsTable.tsx)
-  - [`components/ErrorDisplay.tsx`](C:\Users\chait\authos\t3\q-web\components\ErrorDisplay.tsx)
+  - [`components/FileUploader.tsx`](components/FileUploader.tsx)
+  - [`components/QueryEditor.tsx`](components/QueryEditor.tsx)
+  - [`components/ResultsTable.tsx`](components/ResultsTable.tsx)
+  - [`components/ErrorDisplay.tsx`](components/ErrorDisplay.tsx)
 - Server-side data pipeline:
-  - [`lib/textEncoding.ts`](C:\Users\chait\authos\t3\q-web\lib\textEncoding.ts)
-  - [`lib/delimiterDetection.ts`](C:\Users\chait\authos\t3\q-web\lib\delimiterDetection.ts)
-  - [`lib/headerDetection.ts`](C:\Users\chait\authos\t3\q-web\lib\headerDetection.ts)
-  - [`lib/delimitedData.ts`](C:\Users\chait\authos\t3\q-web\lib\delimitedData.ts)
-  - [`lib/typeInference.ts`](C:\Users\chait\authos\t3\q-web\lib\typeInference.ts)
-  - [`lib/tableNaming.ts`](C:\Users\chait\authos\t3\q-web\lib\tableNaming.ts)
-  - [`lib/queryEngine.ts`](C:\Users\chait\authos\t3\q-web\lib\queryEngine.ts)
-  - [`lib/csvToSqlite.ts`](C:\Users\chait\authos\t3\q-web\lib\csvToSqlite.ts)
-  - [`lib/queryWorker.ts`](C:\Users\chait\authos\t3\q-web\lib\queryWorker.ts)
-  - [`lib/queryWorkerPool.ts`](C:\Users\chait\authos\t3\q-web\lib\queryWorkerPool.ts)
+  - [`lib/textEncoding.ts`](lib/textEncoding.ts)
+  - [`lib/delimiterDetection.ts`](lib/delimiterDetection.ts)
+  - [`lib/headerDetection.ts`](lib/headerDetection.ts)
+  - [`lib/delimitedData.ts`](lib/delimitedData.ts)
+  - [`lib/typeInference.ts`](lib/typeInference.ts)
+  - [`lib/tableNaming.ts`](lib/tableNaming.ts)
+  - [`lib/queryEngine.ts`](lib/queryEngine.ts)
+  - [`lib/csvToSqlite.ts`](lib/csvToSqlite.ts)
+  - [`lib/queryWorker.ts`](lib/queryWorker.ts)
+  - [`lib/queryWorkerPool.ts`](lib/queryWorkerPool.ts)
 - Client-only state helpers:
-  - [`lib/queryHistory.ts`](C:\Users\chait\authos\t3\q-web\lib\queryHistory.ts)
-  - [`lib/shareState.ts`](C:\Users\chait\authos\t3\q-web\lib\shareState.ts)
-  - [`lib/csvExport.ts`](C:\Users\chait\authos\t3\q-web\lib\csvExport.ts)
+  - [`lib/queryHistory.ts`](lib/queryHistory.ts)
+  - [`lib/shareState.ts`](lib/shareState.ts)
+  - [`lib/csvExport.ts`](lib/csvExport.ts)
 
 ## User-Facing Interaction Points
 
 ### Primary page
 
-The main page is rendered by [`app/page.tsx`](C:\Users\chait\authos\t3\q-web\app\page.tsx) and contains three functional areas.
+The main page is rendered by [`app/page.tsx`](app/page.tsx) and contains three functional areas.
 
 ### Upload area
 
-Implemented by [`components/FileUploader.tsx`](C:\Users\chait\authos\t3\q-web\components\FileUploader.tsx).
+Implemented by [`components/FileUploader.tsx`](components/FileUploader.tsx).
 
 - Hidden `<input type="file">`
   - `multiple`
@@ -52,7 +52,7 @@ Implemented by [`components/FileUploader.tsx`](C:\Users\chait\authos\t3\q-web\co
   - Delimiter dropdown
     - `auto`
     - `,`
-    - `\t`
+    - `/t`
     - `;`
   - Header row dropdown
     - `auto`
@@ -73,7 +73,7 @@ Implemented by [`components/FileUploader.tsx`](C:\Users\chait\authos\t3\q-web\co
 
 ### Query area
 
-Implemented by [`components/QueryEditor.tsx`](C:\Users\chait\authos\t3\q-web\components\QueryEditor.tsx).
+Implemented by [`components/QueryEditor.tsx`](components/QueryEditor.tsx).
 
 - Input encoding dropdown
   - `utf-8`
@@ -88,7 +88,7 @@ Implemented by [`components/QueryEditor.tsx`](C:\Users\chait\authos\t3\q-web\com
 
 ### Result area
 
-Implemented by [`components/ResultsTable.tsx`](C:\Users\chait\authos\t3\q-web\components\ResultsTable.tsx).
+Implemented by [`components/ResultsTable.tsx`](components/ResultsTable.tsx).
 
 - Execution summary
   - returned row count
@@ -114,14 +114,14 @@ Implemented by [`components/ResultsTable.tsx`](C:\Users\chait\authos\t3\q-web\co
 
 ### Error and notice surfaces
 
-- Query/server/client errors render through [`components/ErrorDisplay.tsx`](C:\Users\chait\authos\t3\q-web\components\ErrorDisplay.tsx)
+- Query/server/client errors render through [`components/ErrorDisplay.tsx`](components/ErrorDisplay.tsx)
 - Success notices rendered in `app/page.tsx`
   - “Results copied to the clipboard.”
   - “Share link copied to the clipboard.”
 
 ## Browser State Model
 
-Managed in [`app/page.tsx`](C:\Users\chait\authos\t3\q-web\app\page.tsx).
+Managed in [`app/page.tsx`](app/page.tsx).
 
 - `uploadedFiles`
   - `File`
@@ -148,7 +148,7 @@ Managed in [`app/page.tsx`](C:\Users\chait\authos\t3\q-web\app\page.tsx).
 
 ### `POST /api/query`
 
-Implemented by [`app/api/query/route.ts`](C:\Users\chait\authos\t3\q-web\app\api\query\route.ts).
+Implemented by [`app/api/query/route.ts`](app/api/query/route.ts).
 
 #### Runtime behavior
 
@@ -177,7 +177,7 @@ Accepted fields:
 1. Parse `request.formData()`
 2. Collect files from `files[]` and `files`
 3. Trim query text
-4. Load runtime limits from [`lib/runtimeConfig.ts`](C:\Users\chait\authos\t3\q-web\lib\runtimeConfig.ts)
+4. Load runtime limits from [`lib/runtimeConfig.ts`](lib/runtimeConfig.ts)
 5. Validate:
    - at least one file
    - non-empty query
@@ -269,9 +269,9 @@ Top-level route messages are intentionally human-readable:
 
 ### 1. File bytes to decoded text
 
-- Browser `File` objects are selected in [`components/FileUploader.tsx`](C:\Users\chait\authos\t3\q-web\components\FileUploader.tsx)
+- Browser `File` objects are selected in [`components/FileUploader.tsx`](components/FileUploader.tsx)
 - For preview, `app/page.tsx` reads bytes with `file.arrayBuffer()`
-- [`lib/textEncoding.ts`](C:\Users\chait\authos\t3\q-web\lib\textEncoding.ts)
+- [`lib/textEncoding.ts`](lib/textEncoding.ts)
   - detects BOM
   - strips BOM bytes
   - decodes with `TextDecoder`
@@ -279,11 +279,11 @@ Top-level route messages are intentionally human-readable:
 
 ### 2. Decoded text to parsed delimited rows
 
-- [`lib/delimiterDetection.ts`](C:\Users\chait\authos\t3\q-web\lib\delimiterDetection.ts)
-  - guesses delimiter from `,`, `\t`, `;`
-- [`lib/headerDetection.ts`](C:\Users\chait\authos\t3\q-web\lib\headerDetection.ts)
+- [`lib/delimiterDetection.ts`](lib/delimiterDetection.ts)
+  - guesses delimiter from `,`, `/t`, `;`
+- [`lib/headerDetection.ts`](lib/headerDetection.ts)
   - uses preview heuristics to infer whether the first row is a header
-- [`lib/delimitedData.ts`](C:\Users\chait\authos\t3\q-web\lib\delimitedData.ts)
+- [`lib/delimitedData.ts`](lib/delimitedData.ts)
   - parses rows with PapaParse
   - drops parser-blocking errors except delimiter auto-detect noise
   - removes empty/whitespace-only single-cell rows
@@ -295,7 +295,7 @@ Top-level route messages are intentionally human-readable:
 
 ### 3. Parsed rows to inferred schema
 
-- [`lib/typeInference.ts`](C:\Users\chait\authos\t3\q-web\lib\typeInference.ts)
+- [`lib/typeInference.ts`](lib/typeInference.ts)
   - column types are inferred as `INTEGER`, `REAL`, or `TEXT`
   - heuristics keep certain digit-only columns as `TEXT`
     - leading-zero values
@@ -304,14 +304,14 @@ Top-level route messages are intentionally human-readable:
 
 ### 4. Schema to SQLite tables
 
-- [`lib/tableNaming.ts`](C:\Users\chait\authos\t3\q-web\lib\tableNaming.ts)
+- [`lib/tableNaming.ts`](lib/tableNaming.ts)
   - derives safe table names from filenames
   - strips path segments and extensions
   - lowercases
   - replaces non-alphanumeric characters with `_`
   - prefixes reserved words and digit-leading names with `t_`
   - de-duplicates collisions with `_1`, `_2`, and so on
-- [`lib/queryEngine.ts`](C:\Users\chait\authos\t3\q-web\lib\queryEngine.ts)
+- [`lib/queryEngine.ts`](lib/queryEngine.ts)
   - creates in-memory SQLite DB
   - sets PRAGMAs:
     - `journal_mode = OFF`
@@ -327,9 +327,9 @@ Top-level route messages are intentionally human-readable:
 
 - Query enters through `app/page.tsx`
 - Sent to API in `multipart/form-data`
-- API dispatches to [`lib/queryWorkerPool.ts`](C:\Users\chait\authos\t3\q-web\lib\queryWorkerPool.ts)
-- Worker executes [`lib/csvToSqlite.ts`](C:\Users\chait\authos\t3\q-web\lib\csvToSqlite.ts)
-- [`lib/queryEngine.ts`](C:\Users\chait\authos\t3\q-web\lib\queryEngine.ts)
+- API dispatches to [`lib/queryWorkerPool.ts`](lib/queryWorkerPool.ts)
+- Worker executes [`lib/csvToSqlite.ts`](lib/csvToSqlite.ts)
+- [`lib/queryEngine.ts`](lib/queryEngine.ts)
   - normalizes trailing semicolons
   - permits only reader-style queries:
     - `SELECT`
@@ -342,7 +342,7 @@ Top-level route messages are intentionally human-readable:
 
 ### 6. Executed query to API response
 
-- [`lib/csvToSqlite.ts`](C:\Users\chait\authos\t3\q-web\lib\csvToSqlite.ts)
+- [`lib/csvToSqlite.ts`](lib/csvToSqlite.ts)
   - measures execution time
   - sanitizes many downstream errors into user-facing messages
   - always returns a structured response object
@@ -352,19 +352,19 @@ Top-level route messages are intentionally human-readable:
 - `app/page.tsx`
   - checks `response.ok` and `payload.error`
   - sets result state or error state
-- [`components/ResultsTable.tsx`](C:\Users\chait\authos\t3\q-web\components\ResultsTable.tsx)
+- [`components/ResultsTable.tsx`](components/ResultsTable.tsx)
   - formats `null` or `undefined` as `NULL`
   - stringifies object values with `JSON.stringify`
   - paginates client-side if over 1000 rows
 
 ### 8. Rendered table to downloaded CSV/TSV
 
-- `app/page.tsx` creates a Blob from [`lib/csvExport.ts`](C:\Users\chait\authos\t3\q-web\lib\csvExport.ts)
-- [`lib/csvExport.ts`](C:\Users\chait\authos\t3\q-web\lib\csvExport.ts)
+- `app/page.tsx` creates a Blob from [`lib/csvExport.ts`](lib/csvExport.ts)
+- [`lib/csvExport.ts`](lib/csvExport.ts)
   - stringifies cells
   - quotes cells when needed for delimiter, quotes, tabs, or newlines
   - supports optional header row
-  - joins with `\r\n`
+  - joins with `/r/n`
 - Browser download metadata
   - filename depends on output delimiter
   - MIME type is `text/csv` or `text/tab-separated-values`
@@ -455,7 +455,7 @@ Preview behavior:
 
 ### Query execution errors
 
-Sanitized in [`lib/csvToSqlite.ts`](C:\Users\chait\authos\t3\q-web\lib\csvToSqlite.ts):
+Sanitized in [`lib/csvToSqlite.ts`](lib/csvToSqlite.ts):
 
 - parser failures
 - parsed-empty file
@@ -530,7 +530,7 @@ Sanitized in [`lib/csvToSqlite.ts`](C:\Users\chait\authos\t3\q-web\lib\csvToSqli
 
 ## Current Limits and Configuration
 
-Defined in [`lib/runtimeConfig.ts`](C:\Users\chait\authos\t3\q-web\lib\runtimeConfig.ts).
+Defined in [`lib/runtimeConfig.ts`](lib/runtimeConfig.ts).
 
 - max files per request: 20
 - max result rows: 50,000
