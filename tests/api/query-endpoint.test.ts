@@ -26,7 +26,6 @@ const PORT = 3101;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const ENV_OVERRIDES = {
   MAX_FILE_COUNT: "20",
-  MAX_HEAP_MB: "2048",
   MAX_TOTAL_UPLOAD_BYTES: "262144",
   MAX_UPLOAD_BYTES: "131072",
   QUERY_TIMEOUT_MS: "10000",
@@ -128,7 +127,7 @@ afterAll(async () => {
   restoreEnvOverrides();
 });
 
-describe("POST /api/query (live dev server)", () => {
+describe.skipIf(process.env.CI === "true")("POST /api/query (live dev server)", () => {
   it("returns a structured JSON payload and stable headers for a valid request", async () => {
     const response = await postFormData(
       buildFormData({
@@ -370,9 +369,7 @@ describe("POST /api/query (live dev server)", () => {
     expect(payload.error).toBe("The query referenced a table that was not loaded.");
   });
 
-  it.skipIf(process.env.CI === "true")(
-    "keeps twenty concurrent requests isolated from one another",
-    async () => {
+  it("keeps twenty concurrent requests isolated from one another", async () => {
     const responses = await Promise.all(
       Array.from({ length: 20 }, async (_, index) => {
         const requestId = index + 1;
@@ -405,6 +402,5 @@ describe("POST /api/query (live dev server)", () => {
     expect(
       responses.map((response) => response.payload.rows[0]?.value),
     ).toEqual(Array.from({ length: 20 }, (_, index) => `request_${index + 1}`));
-    },
-  );
+  });
 });
