@@ -30,6 +30,7 @@ describe("ErrorDisplay", () => {
   it("uses an error-specific visual treatment", () => {
     const { container } = render(createElement(ErrorDisplay, { message: "Boom" }));
 
-    expect(container.querySelector("section")).toHaveClass("border-red-300");
+    expect(container.querySelector("section")).toHaveClass("border-red-200");
+    expect(container.querySelector("section")).toHaveAttribute("role", "alert");
   });
 });

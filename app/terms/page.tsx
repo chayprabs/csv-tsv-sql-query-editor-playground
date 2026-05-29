@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen px-4 py-10 md:px-8">
+    <main className="mx-auto max-w-3xl px-4 py-10 md:px-6">
       <article className="mx-auto max-w-3xl space-y-6 text-base leading-relaxed text-ink">
         <p className="text-sm text-muted">
           <Link href="/">← Back to Quarry</Link>

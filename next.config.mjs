@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [{ source: "/credits", destination: "/", permanent: true }];
+  },
   experimental: {
     serverComponentsExternalPackages: ["better-sqlite3"],
   },

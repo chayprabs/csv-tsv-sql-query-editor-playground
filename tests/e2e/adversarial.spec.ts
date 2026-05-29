@@ -34,11 +34,7 @@ test.describe("adversarial inputs", () => {
     await uploadFiles(page, ["broken_quotes.csv"]);
 
     await expect(page.getByText(/Failed to parse delimited data/)).toBeVisible();
-    await runQuery(page);
-
-    await expect(
-      page.getByText(/Could not parse the uploaded file/),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /run query/i })).toBeDisabled();
 
     await takeNamedScreenshot(page, "adversarial-broken-quotes");
     await expectHealthyPage(tracker);

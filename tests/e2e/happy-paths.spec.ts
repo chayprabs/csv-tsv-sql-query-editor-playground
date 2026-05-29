@@ -60,7 +60,7 @@ test.describe("happy paths", () => {
     await expect(page.getByRole("columnheader", { name: "salary" })).toBeVisible();
 
     const downloadPromise = page.waitForEvent("download");
-    await page.getByRole("button", { name: /^download$/i }).click();
+    await page.getByRole("button", { name: /download csv/i }).click();
     const download = await downloadPromise;
 
     expect(download.suggestedFilename()).toBe("results.csv");
