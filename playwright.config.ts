@@ -17,8 +17,12 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   webServer: {
-    command: "npm run dev -- --hostname 127.0.0.1 --port 3000",
+    command:
+      process.env.CI === "true"
+        ? "npm run start -- --hostname 127.0.0.1 --port 3000"
+        : "npm run dev -- --hostname 127.0.0.1 --port 3000",
     env: {
+      MAX_HEAP_MB: "2048",
       RATE_LIMIT_BANDWIDTH_MB_PER_HOUR: "4096",
       RATE_LIMIT_MAX_CONCURRENT_GLOBAL: "100",
       RATE_LIMIT_MAX_CONCURRENT_PER_IP: "100",
