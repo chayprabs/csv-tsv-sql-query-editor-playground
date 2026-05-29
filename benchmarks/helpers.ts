@@ -241,6 +241,14 @@ export async function startNextServer(options: {
     "bin",
     "next",
   );
+  const childEnv: NodeJS.ProcessEnv = {
+    ...process.env,
+    NODE_ENV: options.mode === "dev" ? "development" : "production",
+  };
+  delete childEnv.VITEST;
+  delete childEnv.VITEST_WORKER_ID;
+  delete childEnv.VITEST_POOL_ID;
+
   const child = spawn(
     process.execPath,
     [
@@ -253,18 +261,7 @@ export async function startNextServer(options: {
     ],
     {
       cwd: options.cwd,
-      env: (() => {
-        const env = {
-          ...process.env,
-          NODE_ENV: options.mode === "dev" ? "development" : "production",
-        };
-        // Vitest sets VITEST in the parent; the spawned Next server must not
-        // inherit it or the API will skip worker threads during live-server tests.
-        delete env.VITEST;
-        delete env.VITEST_WORKER_ID;
-        delete env.VITEST_POOL_ID;
-        return env;
-      })(),
+      env: childEnv,
       stdio: "pipe",
     },
   );
