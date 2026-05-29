@@ -9,6 +9,7 @@ import { QueryTimeoutError } from "./queryTimeout.ts";
 import {
   createQueryWorkerPayload,
   deserializeWorkerError,
+  runQueryWorker,
   type QueryWorkerJob,
   type QueryWorkerJobResult,
 } from "./queryWorker.ts";
