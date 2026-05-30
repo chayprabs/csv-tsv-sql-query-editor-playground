@@ -3,20 +3,16 @@ import { NextResponse } from "next/server";
 import { createSecurityHeaders } from "@/lib/securityHeaders";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const redisConfigured = Boolean(
-    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN,
-  );
+export function GET() {
+  const headers = createSecurityHeaders("api");
+  headers.set("Cache-Control", "no-store");
 
   return NextResponse.json(
+    { status: "ok" },
     {
-      redis: redisConfigured ? "configured" : "not_configured",
-      status: "ok",
-      timestamp: new Date().toISOString(),
-    },
-    {
-      headers: createSecurityHeaders("api"),
+      headers,
       status: 200,
     },
   );

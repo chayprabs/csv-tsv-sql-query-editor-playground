@@ -1,11 +1,8 @@
 {
   "name": "flatfile-sql-studio",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Quarry — browser-based SQL workspace for uploaded CSV and TSV files.",
   "private": true,
-  "engines": {
-    "node": ">=20"
-  },
   "type": "module",
   "overrides": {
     "glob": "^10.4.6"

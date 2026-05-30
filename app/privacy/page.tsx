@@ -64,8 +64,16 @@ export default function PrivacyPage() {
 
         <h2 className="text-xl font-semibold text-ink">Contact</h2>
         <p>
-          For questions about this privacy notice, contact{" "}
-          <a href="mailto:chayprabs@users.noreply.github.com">the repository owner via GitHub</a>.
+          For questions about this privacy notice, open an issue on the{" "}
+          <a
+            className="text-accent underline underline-offset-4"
+            href="https://github.com/chayprabs/csv-tsv-sql-query-editor-playground/issues"
+            rel="noreferrer"
+            target="_blank"
+          >
+            GitHub repository
+          </a>
+          .
         </p>
         <p className="text-sm text-muted">Last updated: May 17, 2026</p>
       </article>

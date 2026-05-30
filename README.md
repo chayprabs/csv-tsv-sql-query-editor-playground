@@ -139,6 +139,7 @@ Other extensions and disallowed MIME types are rejected. Content is **sniffed** 
 | Max files | **20** | `MAX_FILE_COUNT` |
 | Max result rows | **50,000** | `MAX_RESULT_ROWS` |
 | JSON response budget | **~50 MB** | Engine-enforced |
+| Query length | **10,000** characters | `MAX_QUERY_LENGTH`, `NEXT_PUBLIC_MAX_QUERY_LENGTH` |
 | Query timeout | **30 s** | `QUERY_TIMEOUT_MS` |
 | Memory guard | **80%** of **512 MB** heap budget | `MAX_HEAP_MB` |
 | Requests / IP / minute | **10** | `RATE_LIMIT_REQUESTS_PER_MINUTE` |
@@ -170,7 +171,7 @@ Production deployments with **multiple instances** should set **Upstash Redis** 
 - **Your files are never stored.** Each request builds an **in-memory** SQLite database and destroys it when the request ends.
 - **Privacy policy:** [`/privacy`](app/privacy/page.tsx) (in-app route when running the app).
 - **Terms:** [`/terms`](app/terms/page.tsx).
-- **Credits / attribution:** [`/credits`](app/credits/page.tsx).
+- **Credits / attribution:** [`/terms#open-source`](/terms#open-source) (`/credits` redirects there).
 
 Server logs are described in the privacy page (metadata and truncated query preview for timeouts — **not** file contents or result rows).
 
@@ -250,7 +251,45 @@ Safe SQLite identifiers are derived from **filenames** (normalized, deduplicated
 
 Paste these into **Repository → About → Topics** for discoverability:
 
-`csv` `tsv` `txt` `sql` `sqlite` `sqlite3` `better-sqlite3` `flatfile` `data-analysis` `analytics` `business-intelligence` `nextjs` `nextjs14` `app-router` `typescript` `react` `tailwindcss` `papaparse` `server-side` `nodejs` `privacy` `open-source` `sql-query-builder` `csv-to-sql` `join-csv` `etl` `developer-tools` `quarry` `authos`
+`csv` `tsv` `txt` `sql` `sqlite` `sqlite3` `better-sqlite3` `flatfile` `data-analysis` `analytics` `business-intelligence` `nextjs` `nextjs14` `app-router` `typescript` `react` `tailwindcss` `papaparse` `server-side` `nodejs` `privacy` `open-source` `sql-query-builder` `csv-to-sql` `join-csv` `etl` `developer-tools` `quarry`
+
+---
+
+## Deployment
+
+Quarry needs **Node.js 20+** with native **`better-sqlite3`** (not edge-only hosting). Use a **container** or **VPS**-style platform (Fly.io, Render, Railway, etc.).
+
+### Docker
+
+```bash
+docker build -t quarry .
+docker run --rm -p 3000:3000 \
+  -e FLATFILE_INLINE_QUERY_WORKER=1 \
+  quarry
+```
+
+The image sets `FLATFILE_INLINE_QUERY_WORKER=1` by default so queries run on the main thread (reliable in minimal containers). Health check: `GET /api/health` → `{ "status": "ok" }`.
+
+### Manual production
+
+```bash
+npm ci
+npm run build
+FLATFILE_INLINE_QUERY_WORKER=1 npm run start
+```
+
+Copy **`env.example`** to `.env` and set at least:
+
+- **`UPSTASH_REDIS_REST_URL`** + **`UPSTASH_REDIS_REST_TOKEN`** when running **more than one instance** (shared rate limits).
+- Optional limit overrides (`MAX_UPLOAD_BYTES`, `RATE_LIMIT_*`, etc.).
+
+Smoke after deploy:
+
+```bash
+curl -sS http://localhost:3000/api/health
+curl -sS -o /dev/null -w "%{http_code}\n" http://localhost:3000/
+```
+
 
 ---
 

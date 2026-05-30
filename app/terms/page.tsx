@@ -87,7 +87,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="scroll-mt-24" id="open-source">
           <h2 className="text-xl font-semibold text-ink">Open source</h2>
           <p className="mt-2">
             Quarry&apos;s source code is available at the{" "}
@@ -95,35 +95,6 @@ export default function TermsPage() {
               GitHub repository
             </a>
             . It is provided under the MIT License.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-ink">Limitation of liability</h2>
-          <p className="mt-2">
-            To the fullest extent permitted by law, the operator of Quarry and its contributors
-            shall not be liable for any indirect, incidental, special, consequential, or punitive
-            damages, or any loss of profits, data, or goodwill, arising from your use of the
-            service. Our total liability for any claim related to Quarry shall not exceed the
-            amount you paid to use Quarry in the twelve months before the claim (which is zero
-            when the service is offered free of charge).
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-ink">Indemnification</h2>
-          <p className="mt-2">
-            You agree to indemnify and hold harmless the operator from claims arising out of your
-            uploads, queries, violation of these terms, or infringement of third-party rights.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-ink">Governing law</h2>
-          <p className="mt-2">
-            These terms are governed by the laws applicable where the operator is established,
-            without regard to conflict-of-law rules. If any provision is unenforceable, the
-            remaining provisions remain in effect.
           </p>
         </section>
 

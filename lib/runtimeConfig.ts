@@ -98,7 +98,10 @@ export function getRuntimeConfig(): RuntimeConfig {
       firstDefinedEnv("MAX_HEAP_MB"),
       DEFAULT_MAX_HEAP_MB,
     ),
-    maxQueryLength: DEFAULT_MAX_QUERY_LENGTH,
+    maxQueryLength: parsePositiveIntegerEnv(
+      firstDefinedEnv("MAX_QUERY_LENGTH", "NEXT_PUBLIC_MAX_QUERY_LENGTH"),
+      DEFAULT_MAX_QUERY_LENGTH,
+    ),
     maxResponseBytes: DEFAULT_MAX_RESPONSE_BYTES,
     maxResultRows: parsePositiveIntegerEnv(
       firstDefinedEnv("MAX_RESULT_ROWS", "FLATFILE_SQL_STUDIO_MAX_RESULT_ROWS"),
