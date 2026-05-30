@@ -12,11 +12,11 @@ html {
 
 body {
   min-height: 100vh;
-  background: #fafafa;
-  color: #171717;
-  font-family: var(--font-sans), system-ui, sans-serif;
+  background: #ffffff;
+  color: #17110e;
+  font-family: var(--font-sans), sans-serif;
 }
 
 ::selection {
-  background: rgba(23, 23, 23, 0.12);
+  background: rgba(197, 93, 45, 0.2);
 }

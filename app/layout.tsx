@@ -1,37 +1,29 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 
 import "./globals.css";
 
-const inter = Inter({
+const spaceGrotesk = Space_Grotesk({
   variable: "--font-sans",
   subsets: ["latin"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const plexMono = IBM_Plex_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Quarry — SQL on CSV & TSV",
+    default: "Quarry",
     template: "%s — Quarry",
   },
   description:
-    "Upload CSV, TSV, or text files and run read-only SQL with joins. Server-side in-memory SQLite — nothing stored after your request.",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://quarry.example.com",
-  ),
-  openGraph: {
-    title: "Quarry — SQL on CSV & TSV",
-    description:
-      "Run read-only SQL on uploaded flat files. No account, no file storage.",
-    type: "website",
-  },
+    "Upload CSV, TSV, or text files, map them to SQLite tables, and run read-only SQL on the server — nothing is stored after the request.",
 };
 
 export default function RootLayout({
@@ -42,9 +34,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-canvas text-ink">
+      <body className="flex min-h-full flex-col bg-white">
         <SiteHeader />
         <div className="flex-1">{children}</div>
         <SiteFooter />

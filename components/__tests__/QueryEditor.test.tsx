@@ -11,7 +11,7 @@ function renderQueryEditor(
   overrides: Partial<ComponentProps<typeof QueryEditor>> = {},
 ) {
   const props: ComponentProps<typeof QueryEditor> = {
-    hasFiles: true,
+    canSubmit: true,
     isLoading: false,
     onInputEncodingChange: vi.fn(),
     onQueryChange: vi.fn(),
@@ -57,31 +57,34 @@ describe("QueryEditor", () => {
     expect(screen.getByPlaceholderText("SELECT * FROM basic LIMIT 10")).toBeInTheDocument();
   });
 
-  it("shows the per-file parsing note", () => {
+  it("shows SQL help when toggled", () => {
     renderQueryEditor();
 
-    expect(screen.getByText(/delimiter and header handling now live on each uploaded file card/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /sql help/i }));
+
+    expect(screen.getByText(/read-only sql only/i)).toBeInTheDocument();
   });
 
   it("disables the submit button when the query is empty", () => {
     renderQueryEditor({
+      canSubmit: false,
       query: "",
     });
 
     expect(screen.getByRole("button", { name: /run query/i })).toBeDisabled();
   });
 
-  it("disables the submit button when no files are uploaded", () => {
+  it("disables the submit button when submission is not allowed", () => {
     renderQueryEditor({
-      hasFiles: false,
+      canSubmit: false,
     });
 
     expect(screen.getByRole("button", { name: /run query/i })).toBeDisabled();
   });
 
-  it("enables the submit button when both files and a query are present", () => {
+  it("enables the submit button when submission is allowed", () => {
     renderQueryEditor({
-      hasFiles: true,
+      canSubmit: true,
       query: "SELECT * FROM basic",
     });
 

@@ -168,8 +168,9 @@ Production deployments with **multiple instances** should set **Upstash Redis** 
 ## Privacy & data handling
 
 - **Your files are never stored.** Each request builds an **in-memory** SQLite database and destroys it when the request ends.
-- **Privacy policy:** [`/privacy`](/privacy).
-- **Terms:** [`/terms`](/terms).
+- **Privacy policy:** [`/privacy`](app/privacy/page.tsx) (in-app route when running the app).
+- **Terms:** [`/terms`](app/terms/page.tsx).
+- **Credits / attribution:** [`/credits`](app/credits/page.tsx).
 
 Server logs are described in the privacy page (metadata and truncated query preview for timeouts — **not** file contents or result rows).
 
@@ -249,35 +250,7 @@ Safe SQLite identifiers are derived from **filenames** (normalized, deduplicated
 
 Paste these into **Repository → About → Topics** for discoverability:
 
-`csv` `tsv` `txt` `sql` `sqlite` `sqlite3` `better-sqlite3` `flatfile` `data-analysis` `analytics` `business-intelligence` `nextjs` `nextjs14` `app-router` `typescript` `react` `tailwindcss` `papaparse` `server-side` `nodejs` `privacy` `open-source` `sql-query-builder` `csv-to-sql` `join-csv` `etl` `developer-tools` `quarry`
-
----
-
-## Deployment
-
-Quarry requires **Node.js 20+** with native **better-sqlite3** — not Vercel Edge or other WASM-only hosts.
-
-### Docker
-
-```bash
-docker build -t quarry .
-docker run -p 3000:3000 \
-  -e UPSTASH_REDIS_REST_URL=... \
-  -e UPSTASH_REDIS_REST_TOKEN=... \
-  quarry
-```
-
-Copy limits from **`env.example`**. For multiple instances, configure **Upstash Redis** so rate limits stay consistent.
-
-### Manual
-
-```bash
-npm ci
-npm run build
-npm run start
-```
-
-Set `NEXT_PUBLIC_SITE_URL` to your public origin for correct Open Graph metadata.
+`csv` `tsv` `txt` `sql` `sqlite` `sqlite3` `better-sqlite3` `flatfile` `data-analysis` `analytics` `business-intelligence` `nextjs` `nextjs14` `app-router` `typescript` `react` `tailwindcss` `papaparse` `server-side` `nodejs` `privacy` `open-source` `sql-query-builder` `csv-to-sql` `join-csv` `etl` `developer-tools` `quarry` `authos`
 
 ---
 

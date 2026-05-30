@@ -33,6 +33,8 @@ interface FileUploaderProps {
   onFilesSelected: (files: FileList | null) => void;
   onHeaderModeChange: (tableName: string, headerMode: HeaderMode) => void;
   onLoadSamples?: () => void;
+  onRemoveFile?: (tableName: string) => void;
+  previewsLoading?: boolean;
   samplesLoading?: boolean;
 }
 
@@ -130,8 +132,7 @@ export function FileUploader({
   const [dropActive, setDropActive] = useState(false);
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
-    const allowed = Array.from(event.target.files ?? []).filter(isAllowedUploadFile);
-    onFilesSelected(buildFileListFromFiles(allowed));
+    onFilesSelected(event.target.files);
   }
 
   function handleDragEnter(event: DragEvent<HTMLLabelElement>) {

@@ -24,6 +24,10 @@ function downloadButtonLabel(delimiter: SupportedDelimiter): string {
     return "Download TSV";
   }
 
+  if (delimiter === ";") {
+    return "Download CSV (semicolon)";
+  }
+
   return "Download CSV";
 }
 
@@ -70,11 +74,13 @@ export function ResultsTable({
   }, [columns, rowCount, rows]);
 
   return (
-    <section className="rounded-xl border border-line bg-panel p-6 shadow-panel">
+    <section className="rounded-[2rem] border border-line/90 bg-panel/95 p-6 shadow-panel">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">Results</p>
-          <h2 className="mt-1 text-xl font-semibold text-ink">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+            Results
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-ink">
             {rowCount} row{rowCount === 1 ? "" : "s"} returned
           </h2>
           <p className="mt-2 text-sm text-muted">

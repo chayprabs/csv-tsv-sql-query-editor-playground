@@ -23,6 +23,7 @@ const DEFAULT_MAX_UPLOAD_BYTES = 50 * BYTES_PER_MEGABYTE;
 const DEFAULT_MAX_TOTAL_UPLOAD_BYTES = 50 * BYTES_PER_MEGABYTE;
 const DEFAULT_MAX_FILE_COUNT = 20;
 const DEFAULT_MAX_RESULT_ROWS = 50_000;
+const DEFAULT_MAX_QUERY_LENGTH = 10_000;
 const DEFAULT_QUERY_TIMEOUT_MS = 30_000;
 
 const maxUploadBytes = parsePositiveInt(
@@ -45,13 +46,18 @@ const queryTimeoutSeconds = Math.round(
   parsePositiveInt(process.env.NEXT_PUBLIC_QUERY_TIMEOUT_MS, DEFAULT_QUERY_TIMEOUT_MS) /
     1000,
 );
+const maxQueryLength = parsePositiveInt(
+  process.env.NEXT_PUBLIC_MAX_QUERY_LENGTH,
+  DEFAULT_MAX_QUERY_LENGTH,
+);
 
 export const CLIENT_LIMITS = {
   maxFileCount,
+  maxQueryLength,
   maxResultRows,
   maxTotalBytes,
   maxUploadBytes,
   queryTimeoutSeconds,
   uploadSummary: `Up to ${maxFileCount} files per request (${formatMegabytes(maxUploadBytes)} per file, ${formatMegabytes(maxTotalBytes)} combined).`,
-  querySummary: `Queries time out after ${queryTimeoutSeconds}s. Results may truncate at ${maxResultRows.toLocaleString("en-US")} rows.`,
+  querySummary: `Queries time out after ${queryTimeoutSeconds}s. Max ${maxQueryLength.toLocaleString("en-US")} characters. Results may truncate at ${maxResultRows.toLocaleString("en-US")} rows.`,
 } as const;

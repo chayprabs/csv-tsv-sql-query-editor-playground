@@ -7,7 +7,9 @@ import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { FileUploader, type FilePreview } from "@/components/FileUploader";
 import { QueryEditor } from "@/components/QueryEditor";
 import { ResultsTable } from "@/components/ResultsTable";
+import { SeoBar } from "@/components/SeoBar";
 import { rowsToDelimitedText } from "@/lib/csvExport";
+import { downloadFilename, downloadMimeType } from "@/lib/exportDownload";
 import { parseDelimitedText } from "@/lib/delimitedData";
 import {
   resolveDelimiter,
@@ -31,6 +33,11 @@ import {
   decodeTextBytes,
   type InputEncoding,
 } from "@/lib/textEncoding";
+import {
+  summarizeUploadIssues,
+  validateUploadBatch,
+} from "@/lib/uploadValidation";
+import { CLIENT_LIMITS } from "@/lib/clientLimits";
 
 const DEFAULT_INPUT_ENCODING: InputEncoding = "utf-8";
 const DEFAULT_OUTPUT_DELIMITER: SupportedDelimiter = ",";
@@ -57,13 +64,24 @@ function buildStarterQuery(files: FilePreview[]): string {
     return `SELECT * FROM ${files[0].tableName} LIMIT 10`;
   }
 
+  const leftColumns = new Set(files[0].schema?.map((column) => column.name) ?? []);
+  const sharedColumn = files[1].schema?.find((column) =>
+    leftColumns.has(column.name),
+  )?.name;
+
+  if (sharedColumn) {
+    return [
+      `SELECT a.*, b.*`,
+      `FROM ${files[0].tableName} a`,
+      `JOIN ${files[1].tableName} b ON a.${sharedColumn} = b.${sharedColumn}`,
+      "LIMIT 10",
+    ].join("\n");
+  }
+
   return [
+    `-- No shared column detected; edit the JOIN or query each table separately.`,
     `SELECT * FROM ${files[0].tableName} LIMIT 10;`,
-    "",
-    "SELECT a.*, b.*",
-    `FROM ${files[0].tableName} a`,
-    `JOIN ${files[1].tableName} b ON a.id = b.id`,
-    "LIMIT 10",
+    `SELECT * FROM ${files[1].tableName} LIMIT 10`,
   ].join("\n");
 }
 
@@ -110,22 +128,6 @@ function formatHeaderNotice(files: FilePreview[]): string | null {
   return "Header auto-detection disagreed across the uploaded files still using Auto. Review each file card before running the query.";
 }
 
-function downloadFilename(delimiter: SupportedDelimiter): string {
-  if (delimiter === "\t") {
-    return "results.tsv";
-  }
-
-  return "results.csv";
-}
-
-function downloadMimeType(delimiter: SupportedDelimiter): string {
-  if (delimiter === "\t") {
-    return "text/tab-separated-values;charset=utf-8";
-  }
-
-  return "text/csv;charset=utf-8";
-}
-
 function stringifyClipboardUrl(): string {
   return window.location.href;
 }
@@ -155,16 +157,6 @@ async function readDecodedFile(
     file,
     text,
   };
-}
-
-function buildUploadedFiles(fileList: FileList | null): UploadedFileState[] {
-  const takenTableNames = new Set<string>();
-
-  return Array.from(fileList ?? []).map((file) => ({
-    ...DEFAULT_FILE_PARSE_OPTIONS,
-    file,
-    tableName: deriveTableName(file.name, takenTableNames),
-  }));
 }
 
 function buildFilePreview(
@@ -250,6 +242,8 @@ export default function Home() {
   const [samplesLoading, setSamplesLoading] = useState(false);
   const decodedFileCacheRef = useRef(new Map<string, string>());
   const submitLockRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const [previewsLoading, setPreviewsLoading] = useState(false);
 
   useEffect(() => {
     let nextHistory: string[] = [];
@@ -321,45 +315,50 @@ export default function Home() {
         return;
       }
 
-      try {
-        const decodedFiles = await Promise.all(
-          uploadedFiles.map((uploadedFile) =>
-            readDecodedFile(
-              uploadedFile.file,
-              inputEncoding,
-              decodedFileCacheRef.current,
-            ),
-          ),
-        );
-        const nextPreviews = decodedFiles.map((decodedFile, index) =>
-          buildFilePreview(decodedFile, uploadedFiles[index]),
-        );
+      setPreviewsLoading(true);
 
-        if (didCancel) {
-          return;
-        }
+      const results = await Promise.allSettled(
+        uploadedFiles.map((uploadedFile) =>
+          readDecodedFile(
+            uploadedFile.file,
+            inputEncoding,
+            decodedFileCacheRef.current,
+          ).then((decodedFile) => buildFilePreview(decodedFile, uploadedFile)),
+        ),
+      );
 
-        startTransition(() => {
-          setFilePreviews(nextPreviews);
-          setHeaderNotice(formatHeaderNotice(nextPreviews));
-        });
-
-        setQuery((currentQuery) =>
-          currentQuery.trim() ? currentQuery : buildStarterQuery(nextPreviews),
-        );
-      } catch (error) {
-        if (didCancel) {
-          return;
-        }
-
-        setFilePreviews([]);
-        setHeaderNotice(null);
-        setErrorMessage(
-          error instanceof Error
-            ? `Could not decode files using "${inputEncoding}" encoding. Try another encoding from the dropdown, or confirm each file is plain text. (${error.message})`
-            : "Unexpected client error while reading the selected files.",
-        );
+      if (didCancel) {
+        return;
       }
+
+      const nextPreviews: FilePreview[] = [];
+      let decodeError: string | null = null;
+
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          nextPreviews.push(result.value);
+        } else {
+          decodeError =
+            result.reason instanceof Error
+              ? result.reason.message
+              : "Could not decode a file.";
+        }
+      }
+
+      startTransition(() => {
+        setFilePreviews(nextPreviews);
+        setHeaderNotice(formatHeaderNotice(nextPreviews));
+        setPreviewsLoading(false);
+        setErrorMessage(
+          decodeError
+            ? `Could not decode a file using "${inputEncoding}": ${decodeError}`
+            : null,
+        );
+      });
+
+      setQuery((currentQuery) =>
+        currentQuery.trim() ? currentQuery : buildStarterQuery(nextPreviews),
+      );
     }
 
     preparePreviews();
@@ -393,16 +392,45 @@ export default function Home() {
   }
 
   function handleFilesSelected(fileList: FileList | null) {
-    setUploadedFiles(buildUploadedFiles(fileList));
-    resetDerivedResults();
+    setResult(null);
+    setErrorMessage(null);
+
+    const validation = validateUploadBatch(
+      Array.from(fileList ?? []),
+      uploadedFiles.map((entry) => entry.file),
+    );
+    const issueMessage = summarizeUploadIssues(validation.issues);
+
+    if (validation.accepted.length === 0) {
+      setNoticeMessage(issueMessage);
+      return;
+    }
+
+    const takenTableNames = new Set(uploadedFiles.map((file) => file.tableName));
+    const added = validation.accepted.map((file) => ({
+      ...DEFAULT_FILE_PARSE_OPTIONS,
+      file,
+      tableName: deriveTableName(file.name, takenTableNames),
+    }));
+
+    setUploadedFiles((current) => [...current, ...added]);
+    setNoticeMessage(issueMessage);
   }
 
   function handleClearFiles() {
     setUploadedFiles([]);
     setFilePreviews([]);
     setHeaderNotice(null);
+    setQuery("");
     setInputResetKey((currentKey) => currentKey + 1);
     decodedFileCacheRef.current.clear();
+    resetDerivedResults();
+  }
+
+  function handleRemoveFile(tableName: string) {
+    setUploadedFiles((current) =>
+      current.filter((file) => file.tableName !== tableName),
+    );
     resetDerivedResults();
   }
 
@@ -510,8 +538,22 @@ export default function Home() {
       return;
     }
 
+    if (filePreviews.some((preview) => preview.parseError)) {
+      setNoticeMessage("Fix file parse errors before running a query.");
+      setErrorMessage(null);
+      return;
+    }
+
     if (!query.trim()) {
       setNoticeMessage("Enter a SQL query to run.");
+      setErrorMessage(null);
+      return;
+    }
+
+    if (query.trim().length > CLIENT_LIMITS.maxQueryLength) {
+      setNoticeMessage(
+        `Query exceeds the ${CLIENT_LIMITS.maxQueryLength.toLocaleString("en-US")} character limit.`,
+      );
       setErrorMessage(null);
       return;
     }
@@ -540,10 +582,15 @@ export default function Home() {
       formData.append("query", query);
       formData.append("encoding", inputEncoding);
 
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       const response = await fetch("/api/query", {
         body: formData,
         cache: "no-store",
         method: "POST",
+        signal: controller.signal,
       });
 
       const payload = await readQueryApiResponse(response);
@@ -558,6 +605,11 @@ export default function Home() {
       persistQueryHistory(query);
     } catch (error) {
       setResult(null);
+
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+
       const messageLooksLikeNetworkFailure =
         error instanceof TypeError &&
         /fetch|network|failed to fetch/i.test(String(error.message));
@@ -570,6 +622,7 @@ export default function Home() {
             : "Unexpected client error while running the query.",
       );
     } finally {
+      abortControllerRef.current = null;
       submitLockRef.current = false;
       setIsLoading(false);
     }
@@ -614,50 +667,48 @@ export default function Home() {
     try {
       await navigator.clipboard.writeText(content);
       setNoticeMessage("Results copied to the clipboard.");
+      setErrorMessage(null);
     } catch {
-      // Clipboard failures are ignored (no user-facing error).
+      setNoticeMessage(
+        "Clipboard access was blocked. Use Download instead, or copy from the table.",
+      );
     }
   }
 
   async function handleCopyShareLink() {
     try {
       await navigator.clipboard.writeText(stringifyClipboardUrl());
-      setNoticeMessage("Share link copied to the clipboard.");
+      setNoticeMessage(
+        "Share link copied. It saves your query and export settings — not your uploaded files.",
+      );
+      setErrorMessage(null);
     } catch {
-      // Clipboard failures are ignored (no user-facing error).
+      setNoticeMessage("Could not copy the link. Copy the address bar URL instead.");
     }
   }
 
+
+  function cancelQuery() {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    submitLockRef.current = false;
+    setIsLoading(false);
+    setNoticeMessage("Query cancelled.");
+    setErrorMessage(null);
+  }
+
+  const hasParseErrors = filePreviews.some((preview) => preview.parseError);
+  const canSubmit =
+    uploadedFiles.length > 0 &&
+    !hasParseErrors &&
+    query.trim().length > 0 &&
+    query.trim().length <= CLIENT_LIMITS.maxQueryLength;
+
   return (
-    <main className="min-h-screen px-4 py-8 md:px-8 md:py-10">
-      <div className="mx-auto max-w-7xl">
-        <section className="rounded-[2.4rem] border border-line/80 bg-[#fffaf1]/80 px-6 py-8 shadow-panel md:px-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">
-            Quarry
-          </p>
-          <div className="mt-4 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-            <div>
-              <h1 className="max-w-3xl text-4xl font-semibold tracking-[-0.03em] text-ink md:text-6xl">
-                Run SQL on CSV and TSV files — server-side, nothing stored.
-              </h1>
-            </div>
-            <p className="max-w-xl text-sm leading-7 text-muted md:text-base">
-              Upload one or more delimited files, confirm the inferred schema, and run
-              read-only SQLite queries including joins. Each request uses a fresh in-memory
-              database on the server; files are not written to disk.
-            </p>
-          </div>
-
-          <p
-            className="mt-6 rounded-2xl border border-accent/25 bg-white/70 px-4 py-3 text-sm leading-relaxed text-ink shadow-sm md:text-[15px]"
-            role="note"
-          >
-            Your files are never stored. Each query runs against an in-memory database that
-            is destroyed when the request ends.
-          </p>
-        </section>
-
-        <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+    <>
+      <SeoBar />
+      <main className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
+        <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-6">
             <FileUploader
               files={filePreviews}
@@ -669,16 +720,16 @@ export default function Home() {
               onFilesSelected={handleFilesSelected}
               onHeaderModeChange={handleFileHeaderModeChange}
               onLoadSamples={handleLoadSamples}
+              onRemoveFile={handleRemoveFile}
+              previewsLoading={previewsLoading}
               samplesLoading={samplesLoading}
             />
 
             <QueryEditor
-              hasFiles={
-                uploadedFiles.length > 0 &&
-                !filePreviews.some((preview) => preview.parseError)
-              }
+              canSubmit={canSubmit}
               inputEncoding={inputEncoding}
               isLoading={isLoading}
+              onCancel={cancelQuery}
               onCopyShareLink={handleCopyShareLink}
               onInputEncodingChange={handleInputEncodingChange}
               onQueryChange={setQuery}
@@ -687,6 +738,7 @@ export default function Home() {
               placeholder="SELECT * FROM sales LIMIT 10"
               query={query}
               recentQueries={queryHistory}
+              tableNames={filePreviews.map((file) => file.tableName)}
             />
           </div>
 
@@ -732,7 +784,7 @@ export default function Home() {
             )}
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }

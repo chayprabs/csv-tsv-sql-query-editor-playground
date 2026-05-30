@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10 md:px-6">
+    <main className="min-h-screen px-4 py-10 md:px-8">
       <article className="mx-auto max-w-3xl space-y-6 text-base leading-relaxed text-ink">
         <p className="text-sm text-muted">
           <Link href="/">← Back to Quarry</Link>
@@ -65,7 +65,7 @@ export default function PrivacyPage() {
         <h2 className="text-xl font-semibold text-ink">Contact</h2>
         <p>
           For questions about this privacy notice, contact{" "}
-          <a href="mailto:hello@chaitanyaprabuddha.com">hello@chaitanyaprabuddha.com</a>.
+          <a href="mailto:chayprabs@users.noreply.github.com">the repository owner via GitHub</a>.
         </p>
         <p className="text-sm text-muted">Last updated: May 17, 2026</p>
       </article>

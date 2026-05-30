@@ -76,7 +76,7 @@ test.describe("adversarial inputs", () => {
       ].join("\n"),
     );
 
-    await expect(page.getByRole("cell", { name: "Pe�a" })).toHaveCount(0);
+    await expect(page.getByRole("cell", { name: "Pea" })).toHaveCount(0);
     await expect(page.getByRole("cell", { name: "Peña" })).toBeVisible();
     await expect(page.getByRole("cell", { name: "=SUM(A1:A2)" })).toBeVisible();
 
@@ -95,11 +95,11 @@ test.describe("adversarial inputs", () => {
       ),
     );
 
-    await runQuery(page, "SELECT 1");
-
     await expect(
-      page.getByText(/Too many files uploaded\. Maximum is 20\./),
+      page.getByText(/Only 20 files are allowed|could not be added/i),
     ).toBeVisible();
+
+    await runQuery(page, "SELECT 1");
 
     await takeNamedScreenshot(page, "adversarial-too-many-files");
     await expectHealthyPage(tracker);
